@@ -1,0 +1,12 @@
+body {
+	overflow: hidden;
+	margin: 0;
+	padding: 0;
+
+	/* background-color: rgb(255, 248, 218) */
+}
+#three-canvas {
+	position: fixed;
+	left: 0;
+	top: 0;
+}

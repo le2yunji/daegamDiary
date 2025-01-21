@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>나는야 말하는 감자</title>
+	<link rel="stylesheet" href="./main.css">
+</head>
+<body>
+	<!-- <canvas id="three-canvas"></canvas> -->
+	<!-- <div id="app"></div> -->
+	<!-- <script type="module" src="js/main.js"></script> -->
+	<div id="loader-container">
+		<div id="loading-screen">
+		  <h2>Loading...</h2>
+		  <div id="progress-bar"></div>
+		</div>
+	  </div>
+	  
+	  <div id="start-screen" class="hidden">
+		<h1>Welcome to the Start Screen</h1>
+		<button id="start-button">Start</button>
+	  </div>
+	
+	  <!-- Three.js Canvas -->
+	  <canvas id="three-canvas" style="display: none;"></canvas>
+	
+	  <script src="js/loader.js"></script>
+	  <script src="js/start.js"></script>
+	  <script src="js/main.js"></script>
+</body>
+</html>
