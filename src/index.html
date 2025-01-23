@@ -6,28 +6,26 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>나는야 말하는 감자</title>
 	<link rel="stylesheet" href="./main.css">
+
 </head>
 <body>
-	<!-- <canvas id="three-canvas"></canvas> -->
-	<!-- <div id="app"></div> -->
-	<!-- <script type="module" src="js/main.js"></script> -->
-	<div id="loader-container">
-		<div id="loading-screen">
-		  <h2>Loading...</h2>
-		  <div id="progress-bar"></div>
-		</div>
-	  </div>
-	  
-	  <div id="start-screen" class="hidden">
-		<h1>Welcome to the Start Screen</h1>
+  
+	<div id="loading-screen">
+		<div class="loader"></div>
+		<p>로딩 중...</p>
+	</div>
+	
+	<!-- 시작 화면 -->
+	<div id="start-screen" style="display: none;">
+		<h1>환영합니다!</h1>
 		<button id="start-button">Start</button>
-	  </div>
-	
-	  <!-- Three.js Canvas -->
-	  <canvas id="three-canvas" style="display: none;"></canvas>
-	
-	  <script src="js/loader.js"></script>
-	  <script src="js/start.js"></script>
-	  <script src="js/main.js"></script>
+	</div>
+
+	<!-- three.js 렌더링을 위한 캔버스 -->
+	<canvas id="three-canvas" style="display: none;"></canvas>
+
+	<script src="./loading.min.js"></script>
+	<script src="./start.min.js"></script>
+
 </body>
 </html>
