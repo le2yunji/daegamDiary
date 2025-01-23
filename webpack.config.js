@@ -10,10 +10,13 @@ const webpackMode = process.env.NODE_ENV || 'development';
 module.exports = {
 	mode: webpackMode,
 	entry: {
-		main: path.resolve(__dirname, 'src/js/main.js'),
+		load: path.resolve(__dirname, './src/js/loading.js'),
+		start: path.resolve(__dirname, './src/js/start.js'),
+		// main: path.resolve(__dirname, './src/js/main.js'),
+		main: path.resolve(__dirname, './src/js/main.js'),
 	},
 	output: {
-		path: path.resolve(__dirname, 'dist'),
+		path: path.resolve(__dirname, 'dist'), // 빌드 후 파일이 저장될 경로
 		filename: '[name].min.js',
 	},
 	stats: {
@@ -82,3 +85,4 @@ module.exports = {
 		})
 	]
 };
+console.log(__dirname)
