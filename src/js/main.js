@@ -1,4 +1,3 @@
-import './loading.js';
 import * as THREE from 'three';
 // import * as BufferGeometryUtils from 'three'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
@@ -11,11 +10,6 @@ import { GUI } from 'dat.gui'
 import { Model } from './classes/Model';
 
 
-// document.addEventListener('DOMContentLoaded', () => {
-// 	showLoading().then(() => {
-// 	  startScene();
-// 	});
-//   });
 
 // Texture
 const textureLoader = new THREE.TextureLoader();
@@ -62,6 +56,8 @@ camera.updateProjectionMatrix();
 scene.add(camera);
 
 
+
+
 // GUI
 const gui = new GUI();
 const cameraFolder = gui.addFolder('Camera');
@@ -85,8 +81,8 @@ directionalLight.position.z = directionalLightOriginPosition.z;
 directionalLight.castShadow = true;
 
 // mapSize 세팅으로 그림자 퀄리티 설정
-directionalLight.shadow.mapSize.width = 1024;
-directionalLight.shadow.mapSize.height = 1024;
+directionalLight.shadow.mapSize.width = 2024;
+directionalLight.shadow.mapSize.height = 2024;
 // 그림자 범위
 directionalLight.shadow.camera.left = -100;
 directionalLight.shadow.camera.right = 100;
@@ -110,7 +106,7 @@ floorMesh.rotation.x = -Math.PI/2;
 floorMesh.receiveShadow = true;
 scene.add(floorMesh);
 meshes.push(floorMesh);
-
+// camera.lookAt(floorMesh)
 
 // 바닥 이미지 - 돌 감자
 const dolgamzaTexture = new THREE.TextureLoader().load('./images/rock_gamza.png')
@@ -190,31 +186,69 @@ const player = new Player({
 	meshes,
 	gltfLoader,
 	modelSrc: './models/Gamza_Walk_lightO.glb',
-	x: -20,
-	z: 10,
+	// x: -20,
+	// z: 10,
 });
 
 
 // 감자 머리 위 삼각형
-const triangleTexture = new THREE.TextureLoader().load('./images/triangle2.png')
-const trianglePlaneGeometry = new THREE.PlaneGeometry(1, 1);
+const triangleTexture = new THREE.TextureLoader().load('./images/smile.png')
+const trianglePlaneGeometry = new THREE.PlaneGeometry(2, 2);
 const triangleMaterial = new THREE.MeshBasicMaterial({
 	map: triangleTexture,
 	transparent: true, // PNG의 투명도 반영
-	alphaTest: 0.5 // 알파 값 기준
+	alphaTest: 0.5, // 알파 값 기준
 });
 triangleTexture.colorSpace = THREE.SRGBColorSpace; // sRGB 색 공간 설정
 triangleTexture.needsUpdate = true;
 const triangle = new THREE.Mesh(trianglePlaneGeometry, triangleMaterial);
 // triangle.position.x = 10
-triangle.position.y = 5
+triangle.rotation.x = THREE.MathUtils.degToRad(-10)
+triangle.rotation.y = THREE.MathUtils.degToRad(8)
 
 // triangle.position.z = 10
-setTimeout(()=>{
-	scene.add(triangle);
 
-}, 3000)
 
+
+
+// 감자 발자국
+// const footprintTexture = new THREE.TextureLoader().load('./images/footprint.png')
+// const footprintPlaneGeometry = new THREE.PlaneGeometry(0.6, 0.6);
+// const footprintMaterial = new THREE.MeshBasicMaterial({
+// 	map: footprintTexture,
+// 	transparent: true, // PNG의 투명도 반영
+// 	alphaTest: 0.5, // 알파 값 기준
+// 	opacity: 0
+// });
+// footprintTexture.colorSpace = THREE.SRGBColorSpace; // sRGB 색 공간 설정
+// footprintTexture.needsUpdate = true;
+// const footprint = new THREE.Mesh(footprintPlaneGeometry, footprintMaterial);
+// footprint.position.y = 0.05
+// footprint.rotation.x = THREE.MathUtils.degToRad(-90)
+
+// footprint 생성 함수
+function createFootprint(texturePath, position, rotation) {
+	const footprintTexture = new THREE.TextureLoader().load(texturePath);
+	const footprintPlaneGeometry = new THREE.PlaneGeometry(0.6, 0.6);
+	const footprintMaterial = new THREE.MeshBasicMaterial({
+		map: footprintTexture,
+		transparent: true, // PNG의 투명도 반영
+		alphaTest: 0.5, // 알파 값 기준
+		opacity: 0.7
+	});
+	footprintTexture.colorSpace = THREE.SRGBColorSpace; // sRGB 색 공간 설정
+	footprintTexture.needsUpdate = true;
+	const footprint = new THREE.Mesh(footprintPlaneGeometry, footprintMaterial);
+
+	footprint.position.y = 0.05
+	footprint.rotation.x = THREE.MathUtils.degToRad(-90)
+	
+	// 위치와 회전 값 적용
+	footprint.position.set(position.x, position.y, position.z);
+	footprint.rotation.set(rotation.x, rotation.y, rotation.z);
+
+	return footprint;
+}
 
 
 // #S-4 강의실에서 발표하는 대감이
@@ -253,8 +287,8 @@ classroomLight.shadow.camera.left = -1;
 classroomLight.shadow.camera.right = 1;
 classroomLight.shadow.camera.top = 1;
 classroomLight.shadow.camera.bottom = -1;
-classroomLight.shadow.mapSize.width = 1024; // 기본값 = 512
-classroomLight.shadow.mapSize.height = 1024;
+classroomLight.shadow.mapSize.width = 2024; // 기본값 = 512
+classroomLight.shadow.mapSize.height = 2024;
 classroomLight.shadow.camera.near = 1;
 classroomLight.shadow.camera.far = 5;
 
@@ -490,8 +524,6 @@ const classmate6 = new Classmate({
 });
 
 
-
-
 const raycaster = new THREE.Raycaster();
 let mouse = new THREE.Vector2();
 let destinationPoint = new THREE.Vector3();
@@ -504,183 +536,227 @@ const clock = new THREE.Clock();
 function draw() {
 	const delta = clock.getDelta();
 	const elapsedTime = clock.getElapsedTime(); // 전체 경과 시간
-
+	// player.loadModel();
 
 	if (player.mixer) player.mixer.update(delta);
 	if (onion.mixer) onion.mixer.update(delta)
 	if (classroomgamza.mixer) classroomgamza.mixer.update(delta); 
 
-	// if (player.modelMesh) {
-	// 	setTimeout(()=>{
-	// 		gsap.to(player.modelMesh.position, {
-	// 			duration: 3,
-	// 			x: 0,
-	// 			z: 0,
-	// 			ease: 'none',
-	// 		});
-	// 	})
-		
-	// };
+
+		if (player.modelMesh) {
+			camera.lookAt(player.modelMesh.position);
+		}
 	
-
-	if (player.modelMesh) {
-		camera.lookAt(player.modelMesh.position);
-		
-		if (triangle) {
-			// Y 좌표를 부드럽게 오르락내리락
-			triangle.position.y = 5.5 + Math.sin(elapsedTime * 3) * 0.4; // 3.5 ~ 4.5 범위에서 움직임
-		}
-	}
-
-	if (player.modelMesh) {
-
-		if (isPressed) {
-			raycasting();
-		}
-
-		if (player.moving) {
-			// 걸어가는 상태
-			// 현재 위치와 목표지점의 거리를 통해 각도 계산
-			angle = Math.atan2(
-				destinationPoint.z - player.modelMesh.position.z,
-				destinationPoint.x - player.modelMesh.position.x
-			);
-			// 구한 각도를 이용해 좌표를 구하고 그 좌표로 이동
-			player.modelMesh.position.x += Math.cos(angle) * 0.2;  // 걷는 속도
-			player.modelMesh.position.z += Math.sin(angle) * 0.2;
-
-			// 카메라도 같이 이동
-			camera.position.x = cameraPosition.x + player.modelMesh.position.x;
-			camera.position.z = cameraPosition.z + player.modelMesh.position.z;
-
-			// 머리 위 삼각형도 따라가기
-			if (triangle) {
-				triangle.position.x = player.modelMesh.position.x;
-				triangle.position.z = player.modelMesh.position.z;
+		if (player.modelMesh) {
+	
+			if (isPressed) {
+				raycasting();
 			}
-			
-			// player.actions[0].stop();
-			player.actions[1].play();
-			
-			if (
-				Math.abs(destinationPoint.x - player.modelMesh.position.x) < 0.1 &&
-				Math.abs(destinationPoint.z - player.modelMesh.position.z) < 0.1
-			) {
-				player.moving = false;
-			}
-
-			// 강의실 인터랙션
-			if (   // 파란색 포인트 지점(3*3사각형) 안에 도달시 
-			Math.abs(classroomSpotMesh.position.x - player.modelMesh.position.x) < 1.5 &&
-			Math.abs(classroomSpotMesh.position.z - player.modelMesh.position.z) < 1.5
-			){
-				if(!classroom.visible){
-						// setImmediate(()=>{
-							classroomSpotMesh.material.color.set('seagreen');
-							classroom.loadModel();
-							classmate1.loadModel();
-							classmate2.loadModel();
-							classmate3.loadModel();
-							classmate4.loadModel();
-							classmate5.loadModel();
-							classmate6.loadModel();
-						// })
-
-						// 카메라 각도 변환
-						gsap.to(
-							camera.position,
-							{
-								duration: 1,
-								y: 3
-							}
-						);
+	
+			if (player.moving) {
 				
-						setTimeout(()=>{
-							scene.add(classroomLight);
-							ppt1.visible = true;
-							ppt2.visible = false;
-							ppt3.visible = false;
-						}, 1000)
-						
-						setTimeout(()=>{
-							onion.loadModel();
-							classroomgamza.loadModel();
-						}, 200)
-
-						setTimeout(()=>{
-						}, 500)
-
-						player.moving = false;
-						triangle.visible = false;
-						// player 사라짐
-						gsap.to(
-							player.modelMesh.scale,
-							{
-								duration: 0.4,
-								x: 0,
-								y: 0,
-								z: 0,
-								ease: 'expo.easeOut'   // 튀어나옴 효과. 라이브러리가 가지고 있는 값.
-							}
-						);
-						
-						classroomSpotMesh.visible = false
-						// pointerMesh.visible = false
-						isPressed = false;
-						// 마우스 이벤트 비활성화
-						disableMouseEvents();
-
-
-						setTimeout(()=>{
-							ppt1.visible = false;
-							ppt2.visible = true;
-							ppt3.visible = false;
-
+				scene.add(triangle)
+				if (triangle) {
+				// Y 좌표를 부드럽게 오르락내리락
+				triangle.position.y = 7 + Math.sin(elapsedTime * 3) * 0.4; // 3.5 ~ 4.5 범위에서 움직임
+			}
+				// 걸어가는 상태
+				// 현재 위치와 목표지점의 거리를 통해 각도 계산
+				angle = Math.atan2(
+					destinationPoint.z - player.modelMesh.position.z,
+					destinationPoint.x - player.modelMesh.position.x
+				);
+				// 구한 각도를 이용해 좌표를 구하고 그 좌표로 이동
+				player.modelMesh.position.x += Math.cos(angle) * 0.2;  // 걷는 속도
+				player.modelMesh.position.z += Math.sin(angle) * 0.2;
+	
+				// 카메라도 같이 이동
+				camera.position.x = cameraPosition.x + player.modelMesh.position.x;
+				camera.position.z = cameraPosition.z + player.modelMesh.position.z;
+	
+				// 머리 위 삼각형도 따라가기
+				if (triangle) {
+					triangle.position.x = player.modelMesh.position.x;
+					triangle.position.z = player.modelMesh.position.z;
+				}
+				// if (footprint) {
+				// 	footprint.position.y = 0.05
+				// 	footprint.position.x = player.modelMesh.position.x;
+				// 	footprint.position.z = player.modelMesh.position.z;
+				// 	footprint.opacity = 1
+				// }
+				
+				let lastFootprintTime = 0; // 마지막 발자국을 찍은 시간
+				const footprintInterval = 500; // 발자국을 찍는 간격을 500ms로 설정 (너무 길지 않게 설정)
+				const footprintLifetime = 2000; // 발자국의 생명 주기 (ms)
+				const footprintMinDistance = -0.002; // 발자국을 찍는 최소 이동 거리 (이동 거리가 0.2 이상일 때만 찍기)
+				
+				let footprintArray = []; // 찍힌 발자국을 저장하는 배열
+				let lastPosition = { x: player.modelMesh.position.x, z: player.modelMesh.position.z }; // 이전 위치
+	
+				// 이동 거리 계산
+				const distanceMoved = Math.sqrt(
+					Math.pow(player.modelMesh.position.x - lastPosition.x, 2) +
+					Math.pow(player.modelMesh.position.z - lastPosition.z, 2)
+				);
+	
+				// 이동 거리 출력 (디버깅: 이전 위치와 현재 위치 출력)
+				// console.log("Previous Position:", lastPosition);
+				// console.log("Current Position:", player.modelMesh.position);
+				// console.log("Distance Moved: ", distanceMoved);  // 디버깅: 이동 거리 출력
+	
+				// 발자국 찍기
+				const currentTime = performance.now();
+				if (currentTime - lastFootprintTime > footprintInterval && distanceMoved > footprintMinDistance) {
+					// console.log("발자국 찍기!");  // 디버깅: 발자국 찍을 조건이 맞는지 확인
+	
+					// 새로운 발자국 찍기
+					const newFootprint = createFootprint('./images/footprint.png', 
+						{ x: player.modelMesh.position.x, y: 0.05, z: player.modelMesh.position.z }, 
+						{ x: THREE.MathUtils.degToRad(-90), y: 0, z: 0 });
+	
+					
+					// scene.add(newFootprint);
+	
+					footprintArray.push({ footprint: newFootprint, timeStamp: currentTime });
+	
+					lastFootprintTime = currentTime; // 마지막 발자국 찍은 시간 업데이트
+	
+					// 위치 업데이트 (이동 후에 갱신)
+					lastPosition = { x: player.modelMesh.position.x, z: player.modelMesh.position.z }; 
+				}
+	
+				// 발자국 생명 주기 처리 (일정 시간 지나면 발자국 삭제)
+				footprintArray.forEach((item, index) => {
+					if (currentTime - item.timeStamp > footprintLifetime) {
+						scene.remove(item.footprint);
+						footprintArray.splice(index, 1); // 배열에서 삭제
+					}
+				});
+	
+				// player.actions[0].stop();
+				player.actions[1].play();
+				
+				if (
+					Math.abs(destinationPoint.x - player.modelMesh.position.x) < 0.1 &&
+					Math.abs(destinationPoint.z - player.modelMesh.position.z) < 0.1
+				) {
+					player.moving = false;
+				}
+	
+				// 강의실 인터랙션
+				if (   // 파란색 포인트 지점(3*3사각형) 안에 도달시 
+				Math.abs(classroomSpotMesh.position.x - player.modelMesh.position.x) < 1.5 &&
+				Math.abs(classroomSpotMesh.position.z - player.modelMesh.position.z) < 1.5
+				){
+					if(!classroom.visible){
+							// setImmediate(()=>{
+								classroomSpotMesh.material.color.set('seagreen');
+								classroom.loadModel();
+								classmate1.loadModel();
+								classmate2.loadModel();
+								classmate3.loadModel();
+								classmate4.loadModel();
+								classmate5.loadModel();
+								classmate6.loadModel();
+							// })
+	
+							// 카메라 각도 변환
 							gsap.to(
-							ppt2,
-							{
-								duration: 1.4,
-								ease: 'Bounce.easeOut'   // 튀어나옴 효과. 라이브러리가 가지고 있는 값.
-							});
-						}, 3000)
-
-
-						setTimeout(()=>{
-							ppt1.visible = false;
-							ppt2.visible = false;
-							ppt3.visible = true;
-
+								camera.position,
+								{
+									duration: 1,
+									y: 3
+								}
+							);
+					
+							setTimeout(()=>{
+								scene.add(classroomLight);
+								ppt1.visible = true;
+								ppt2.visible = false;
+								ppt3.visible = false;
+							}, 1000)
+							
+							setTimeout(()=>{
+								onion.loadModel();
+								classroomgamza.loadModel();
+							}, 200)
+	
+							setTimeout(()=>{
+							}, 500)
+	
+							player.moving = false;
+							triangle.visible = false;
+							// player 사라짐
 							gsap.to(
-							ppt3,
-							{
-								duration: 1.4,
-								ease: 'Bounce.easeOut'   // 튀어나옴 효과. 라이브러리가 가지고 있는 값.
-							}
+								player.modelMesh.scale,
+								{
+									duration: 0.4,
+									x: 0,
+									y: 0,
+									z: 0,
+									ease: 'expo.easeOut'   // 튀어나옴 효과. 라이브러리가 가지고 있는 값.
+								}
 							);
 							
-							onion.actions[0].play();
-							classroomgamza.actions[0].play();
+							classroomSpotMesh.visible = false
+							// pointerMesh.visible = false
+							isPressed = false;
+							// 마우스 이벤트 비활성화
+							disableMouseEvents();
+	
+	
+							setTimeout(()=>{
+								ppt1.visible = false;
+								ppt2.visible = true;
+								ppt3.visible = false;
+	
+								gsap.to(
+								ppt2,
+								{
+									duration: 1.4,
+									ease: 'Bounce.easeOut'   // 튀어나옴 효과. 라이브러리가 가지고 있는 값.
+								});
+							}, 3000)
+	
+	
+							setTimeout(()=>{
+								ppt1.visible = false;
+								ppt2.visible = false;
+								ppt3.visible = true;
+	
+								gsap.to(
+								ppt3,
+								{
+									duration: 1.4,
+									ease: 'Bounce.easeOut'   // 튀어나옴 효과. 라이브러리가 가지고 있는 값.
+								}
+								);
 								
-
-						}, 8000)
-
-						// classroomMusic.stop()
-
-					// 발표 인터랙션
-					// if (   // 파란색 포인트 지점(3*3사각형) 안에 도달시 
-					// Math.abs(presentSpotMesh.position.x - player.modelMesh.position.x) < 1 &&
-					// Math.abs(presentSpotMesh.position.z - player.modelMesh.position.z) < 1
-					// ) { 
-					// 	presentSpotMesh.material.color.set('seagreen');
-					// }
+								onion.actions[0].play();
+								classroomgamza.actions[0].play();
+									
+	
+							}, 8000)
+	
+							// classroomMusic.stop()
+	
+						// 발표 인터랙션
+						// if (   // 파란색 포인트 지점(3*3사각형) 안에 도달시 
+						// Math.abs(presentSpotMesh.position.x - player.modelMesh.position.x) < 1 &&
+						// Math.abs(presentSpotMesh.position.z - player.modelMesh.position.z) < 1
+						// ) { 
+						// 	presentSpotMesh.material.color.set('seagreen');
+						// }
+					}
 				}
+			} else {
+				player.moving = false;
+				// 서 있는 상태
+				player.actions[1].stop();
 			}
-		} else {
-			player.moving = false;
-			// 서 있는 상태
-			player.actions[1].stop();
 		}
-	}
+	
 
 	renderer.render(scene, camera);
 	renderer.setAnimationLoop(draw);
@@ -710,7 +786,7 @@ function checkIntersects() {
 			pointerMesh.position.x = destinationPoint.x;
 			pointerMesh.position.z = destinationPoint.z;
 
-			console.log(destinationPoint.x, destinationPoint.z)
+			// console.log(destinationPoint.x, destinationPoint.z)
 		}
 		break;
 	}
@@ -805,3 +881,6 @@ function enableMouseEvents() {
 }
 
 draw();
+
+
+
