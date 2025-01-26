@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import * as CANNON from 'cannon-es'
 // import * as BufferGeometryUtils from 'three'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import { Player } from './classes/Player';
@@ -8,7 +9,6 @@ import { Classmate } from './classes/Classmate'
 import gsap from 'gsap';
 import { GUI } from 'dat.gui'
 import { Model } from './classes/Model';
-
 
 
 // Texture
@@ -38,7 +38,6 @@ const axesHelper = new THREE.AxesHelper(1000); // 축 크기
 axesHelper.position.y = 0.5
 // scene.add(axesHelper);
 
-
 // Camera
 const camera = new THREE.OrthographicCamera(
 	-(window.innerWidth / window.innerHeight), // left
@@ -55,18 +54,21 @@ camera.zoom = 0.07; // OrthographicCamera는 줌 설정 가능
 camera.updateProjectionMatrix();
 scene.add(camera);
 
-
-
-
 // GUI
 const gui = new GUI();
 const cameraFolder = gui.addFolder('Camera');
-cameraFolder.add(camera, 'zoom', 0.01, 0.1, 0.001) // 줌 범위 설정 (최소값, 최대값, 스텝)
+cameraFolder.add(camera, 'zoom', 0.01, 0.3, 0.001) // 줌 범위 설정 (최소값, 최대값, 스텝)
 	.name('Zoom')
 	.onChange(() => {
 		camera.updateProjectionMatrix(); // 줌 변경 후 업데이트 필요
 	});
 cameraFolder.open();
+
+
+// Cannon(물리 엔진)
+const cannonWolrd = new CANNON.World();
+cannonWolrd.gravity.set(0, -10, 0); // 중력 가속도 설정. 지구는 9.8, 측(방향)별로 세팅. y만 하면 됨.
+
 
 
 // Light
@@ -91,7 +93,6 @@ directionalLight.shadow.camera.bottom = -100;
 directionalLight.shadow.camera.near = -100;
 directionalLight.shadow.camera.far = 100;
 scene.add(directionalLight);
-
 
 // Mesh
 const meshes = [];
@@ -149,7 +150,6 @@ oniongamzagoguma.rotation.x = THREE.MathUtils.degToRad(-90)
 scene.add(oniongamzagoguma);
 
 
-
 const pointerMesh = new THREE.Mesh(
 	new THREE.PlaneGeometry(1, 1),
 	new THREE.MeshBasicMaterial({
@@ -164,19 +164,6 @@ pointerMesh.position.y = 0.01;
 pointerMesh.receiveShadow = true;
 scene.add(pointerMesh);
 
-// 하우스 스팟 매쉬
-// const spotMesh = new THREE.Mesh(
-// 	new THREE.PlaneGeometry(3, 3),
-// 	new THREE.MeshStandardMaterial({
-// 		color: 'yellow',
-// 		transparent: true,
-// 		opacity: 0.5
-// 	})
-// );
-// spotMesh.position.set(5, 0.005, 5);
-// spotMesh.rotation.x = -Math.PI/2;
-// spotMesh.receiveShadow = true;
-// scene.add(spotMesh);
 
 const gltfLoader = new GLTFLoader();
 
@@ -185,9 +172,9 @@ const player = new Player({
 	scene,
 	meshes,
 	gltfLoader,
-	modelSrc: './models/Gamza_Walk_lightO.glb',
-	// x: -20,
-	// z: 10,
+	modelSrc: './models/Gamza_Cycle01.glb',
+	x: -20,
+	z: -10,
 });
 
 
@@ -209,9 +196,7 @@ triangle.rotation.y = THREE.MathUtils.degToRad(8)
 // triangle.position.z = 10
 
 
-
-
-// 감자 발자국
+//// 감자 발자국
 // const footprintTexture = new THREE.TextureLoader().load('./images/footprint.png')
 // const footprintPlaneGeometry = new THREE.PlaneGeometry(0.6, 0.6);
 // const footprintMaterial = new THREE.MeshBasicMaterial({
@@ -225,6 +210,7 @@ triangle.rotation.y = THREE.MathUtils.degToRad(8)
 // const footprint = new THREE.Mesh(footprintPlaneGeometry, footprintMaterial);
 // footprint.position.y = 0.05
 // footprint.rotation.x = THREE.MathUtils.degToRad(-90)
+
 
 // footprint 생성 함수
 function createFootprint(texturePath, position, rotation) {
@@ -315,10 +301,8 @@ const ppt3 = new THREE.Mesh(planeGeometry, pptMaterial3);
 
 ppt1.position.set(50.3, 5.45, 15.5)
 ppt1.scale.set(1.435, 1.45, 1.45)
-
 ppt2.position.set(50.3, 5.45, 15.5)
 ppt2.scale.set(1.435, 1.45, 1.45)
-
 ppt3.position.set(50.3, 5.45, 15.5)
 ppt3.scale.set(1.435, 1.45, 1.45)
 
@@ -328,7 +312,6 @@ scene.add(ppt1, ppt2, ppt3);
 ppt1.visible = false
 ppt2.visible = false
 ppt3.visible = false
-
 
 
 // 강의실
@@ -354,6 +337,28 @@ const classroom = new Model({
 	},
 });
 
+const sweat = new Model({
+	gltfLoader,
+	scene,
+	modelSrc: './models/sweat.glb',
+	x: 58,  
+	y: 5,
+	// y: 5.05,
+	z: 17.5, 
+	rotationY: THREE.MathUtils.degToRad(90),
+	// scaleX: 4,
+	// scaleY: 4,
+	// scaleX: 4,
+	onLoad: (modelMesh) => {
+		// 모델이 로드된 후에 GSAP 애니메이션 실행
+		gsap.to(modelMesh.position, {
+			duration: 1,
+			y: 4,
+			ease: 'Bounce.easeOut',
+		});
+	},
+})
+
 // 강의실 감자
 const classroomgamza = new ClassroomGamza({
 	scene,
@@ -373,7 +378,6 @@ const classroomgamza = new ClassroomGamza({
 			z: 17.5,
 			ease: 'Bounce.easeOut',
 		});
-
 	},
 });
 
@@ -398,7 +402,6 @@ const onion = new Onion({
 			ease: 'Bounce.easeOut',
 		});
 	},
-	
 });
 
 // 학생 감자들
@@ -412,7 +415,7 @@ const classmate1 = new Classmate({
 	rotationY: THREE.MathUtils.degToRad(90),
 	// scaleX: 4,
 	// scaleY: 4,
-	// scaleX: 4,
+	// scaleZ: 4,
 	onLoad: (modelMesh) => {
 		// 모델이 로드된 후에 GSAP 애니메이션 실행
 		gsap.to(modelMesh.position, {
@@ -523,12 +526,14 @@ const classmate6 = new Classmate({
 	},
 });
 
-
 const raycaster = new THREE.Raycaster();
 let mouse = new THREE.Vector2();
 let destinationPoint = new THREE.Vector3();
+let startDestinationPoint = new THREE.Vector3();
 let angle = 0;
 let isPressed = false; // 마우스를 누르고 있는 상태
+let started = false;
+
 
 // 그리기
 const clock = new THREE.Clock();
@@ -541,222 +546,168 @@ function draw() {
 	if (player.mixer) player.mixer.update(delta);
 	if (onion.mixer) onion.mixer.update(delta)
 	if (classroomgamza.mixer) classroomgamza.mixer.update(delta); 
+	
+	if (!started) {
+		setTimeout(() => {
+			startRun();
+			player.moving = true;  // 이동 시작
+		}, 7000);
+		started = true;
+	}
 
+	if (player.modelMesh && started) camera.lookAt(player.modelMesh.position);
 
-		if (player.modelMesh) {
-			camera.lookAt(player.modelMesh.position);
+	if (player.modelMesh && started) {
+
+		// 마우스를 누르고있을 때
+		if (isPressed) {
+			raycasting();
 		}
-	
-		if (player.modelMesh) {
-	
-			if (isPressed) {
-				raycasting();
+
+		// 감자가 움직일 때
+		if (player.moving) {
+
+			scene.add(triangle)
+			if (triangle) {
+			// Y 좌표를 부드럽게 오르락내리락
+			triangle.position.y = 7 + Math.sin(elapsedTime * 3) * 0.4; // 3.5 ~ 4.5 범위에서 움직임
 			}
-	
-			if (player.moving) {
-				
-				scene.add(triangle)
-				if (triangle) {
-				// Y 좌표를 부드럽게 오르락내리락
-				triangle.position.y = 7 + Math.sin(elapsedTime * 3) * 0.4; // 3.5 ~ 4.5 범위에서 움직임
+
+			// 걸어가는 상태
+			angle = Math.atan2(   	// 현재 위치와 목표지점의 거리를 통해 각도 계산
+				destinationPoint.z - player.modelMesh.position.z,
+				destinationPoint.x - player.modelMesh.position.x
+			);
+			// 구한 각도를 이용해 좌표를 구하고 그 좌표로 이동
+			player.modelMesh.position.x += Math.cos(angle) * 0.2;  // 걷는 속도
+			player.modelMesh.position.z += Math.sin(angle) * 0.2;
+
+			// 카메라도 같이 이동
+			camera.position.x = cameraPosition.x + player.modelMesh.position.x;
+			camera.position.z = cameraPosition.z + player.modelMesh.position.z;
+
+			// 머리 위 삼각형도 따라가기
+			if (triangle) {
+				triangle.position.x = player.modelMesh.position.x;
+				triangle.position.z = player.modelMesh.position.z;
 			}
-				// 걸어가는 상태
-				// 현재 위치와 목표지점의 거리를 통해 각도 계산
-				angle = Math.atan2(
-					destinationPoint.z - player.modelMesh.position.z,
-					destinationPoint.x - player.modelMesh.position.x
-				);
-				// 구한 각도를 이용해 좌표를 구하고 그 좌표로 이동
-				player.modelMesh.position.x += Math.cos(angle) * 0.2;  // 걷는 속도
-				player.modelMesh.position.z += Math.sin(angle) * 0.2;
-	
-				// 카메라도 같이 이동
-				camera.position.x = cameraPosition.x + player.modelMesh.position.x;
-				camera.position.z = cameraPosition.z + player.modelMesh.position.z;
-	
-				// 머리 위 삼각형도 따라가기
-				if (triangle) {
-					triangle.position.x = player.modelMesh.position.x;
-					triangle.position.z = player.modelMesh.position.z;
-				}
-				// if (footprint) {
-				// 	footprint.position.y = 0.05
-				// 	footprint.position.x = player.modelMesh.position.x;
-				// 	footprint.position.z = player.modelMesh.position.z;
-				// 	footprint.opacity = 1
-				// }
-				
-				let lastFootprintTime = 0; // 마지막 발자국을 찍은 시간
-				const footprintInterval = 500; // 발자국을 찍는 간격을 500ms로 설정 (너무 길지 않게 설정)
-				const footprintLifetime = 2000; // 발자국의 생명 주기 (ms)
-				const footprintMinDistance = -0.002; // 발자국을 찍는 최소 이동 거리 (이동 거리가 0.2 이상일 때만 찍기)
-				
-				let footprintArray = []; // 찍힌 발자국을 저장하는 배열
-				let lastPosition = { x: player.modelMesh.position.x, z: player.modelMesh.position.z }; // 이전 위치
-	
-				// 이동 거리 계산
-				const distanceMoved = Math.sqrt(
-					Math.pow(player.modelMesh.position.x - lastPosition.x, 2) +
-					Math.pow(player.modelMesh.position.z - lastPosition.z, 2)
-				);
-	
-				// 이동 거리 출력 (디버깅: 이전 위치와 현재 위치 출력)
-				// console.log("Previous Position:", lastPosition);
-				// console.log("Current Position:", player.modelMesh.position);
-				// console.log("Distance Moved: ", distanceMoved);  // 디버깅: 이동 거리 출력
-	
-				// 발자국 찍기
-				const currentTime = performance.now();
-				if (currentTime - lastFootprintTime > footprintInterval && distanceMoved > footprintMinDistance) {
-					// console.log("발자국 찍기!");  // 디버깅: 발자국 찍을 조건이 맞는지 확인
-	
-					// 새로운 발자국 찍기
-					const newFootprint = createFootprint('./images/footprint.png', 
-						{ x: player.modelMesh.position.x, y: 0.05, z: player.modelMesh.position.z }, 
-						{ x: THREE.MathUtils.degToRad(-90), y: 0, z: 0 });
-	
-					
-					// scene.add(newFootprint);
-	
-					footprintArray.push({ footprint: newFootprint, timeStamp: currentTime });
-	
-					lastFootprintTime = currentTime; // 마지막 발자국 찍은 시간 업데이트
-	
-					// 위치 업데이트 (이동 후에 갱신)
-					lastPosition = { x: player.modelMesh.position.x, z: player.modelMesh.position.z }; 
-				}
-	
-				// 발자국 생명 주기 처리 (일정 시간 지나면 발자국 삭제)
-				footprintArray.forEach((item, index) => {
-					if (currentTime - item.timeStamp > footprintLifetime) {
-						scene.remove(item.footprint);
-						footprintArray.splice(index, 1); // 배열에서 삭제
-					}
-				});
-	
-				// player.actions[0].stop();
-				player.actions[1].play();
-				
-				if (
-					Math.abs(destinationPoint.x - player.modelMesh.position.x) < 0.1 &&
-					Math.abs(destinationPoint.z - player.modelMesh.position.z) < 0.1
-				) {
-					player.moving = false;
-				}
-	
-				// 강의실 인터랙션
-				if (   // 파란색 포인트 지점(3*3사각형) 안에 도달시 
-				Math.abs(classroomSpotMesh.position.x - player.modelMesh.position.x) < 1.5 &&
-				Math.abs(classroomSpotMesh.position.z - player.modelMesh.position.z) < 1.5
-				){
-					if(!classroom.visible){
-							// setImmediate(()=>{
-								classroomSpotMesh.material.color.set('seagreen');
-								classroom.loadModel();
-								classmate1.loadModel();
-								classmate2.loadModel();
-								classmate3.loadModel();
-								classmate4.loadModel();
-								classmate5.loadModel();
-								classmate6.loadModel();
-							// })
-	
-							// 카메라 각도 변환
-							gsap.to(
-								camera.position,
-								{
-									duration: 1,
-									y: 3
-								}
-							);
-					
-							setTimeout(()=>{
-								scene.add(classroomLight);
-								ppt1.visible = true;
-								ppt2.visible = false;
-								ppt3.visible = false;
-							}, 1000)
-							
-							setTimeout(()=>{
-								onion.loadModel();
-								classroomgamza.loadModel();
-							}, 200)
-	
-							setTimeout(()=>{
-							}, 500)
-	
-							player.moving = false;
-							triangle.visible = false;
-							// player 사라짐
-							gsap.to(
-								player.modelMesh.scale,
-								{
-									duration: 0.4,
-									x: 0,
-									y: 0,
-									z: 0,
-									ease: 'expo.easeOut'   // 튀어나옴 효과. 라이브러리가 가지고 있는 값.
-								}
-							);
-							
-							classroomSpotMesh.visible = false
-							// pointerMesh.visible = false
-							isPressed = false;
-							// 마우스 이벤트 비활성화
-							disableMouseEvents();
-	
-	
-							setTimeout(()=>{
-								ppt1.visible = false;
-								ppt2.visible = true;
-								ppt3.visible = false;
-	
-								gsap.to(
-								ppt2,
-								{
-									duration: 1.4,
-									ease: 'Bounce.easeOut'   // 튀어나옴 효과. 라이브러리가 가지고 있는 값.
-								});
-							}, 3000)
-	
-	
-							setTimeout(()=>{
-								ppt1.visible = false;
-								ppt2.visible = false;
-								ppt3.visible = true;
-	
-								gsap.to(
-								ppt3,
-								{
-									duration: 1.4,
-									ease: 'Bounce.easeOut'   // 튀어나옴 효과. 라이브러리가 가지고 있는 값.
-								}
-								);
-								
-								onion.actions[0].play();
-								classroomgamza.actions[0].play();
-									
-	
-							}, 8000)
-	
-							// classroomMusic.stop()
-	
-						// 발표 인터랙션
-						// if (   // 파란색 포인트 지점(3*3사각형) 안에 도달시 
-						// Math.abs(presentSpotMesh.position.x - player.modelMesh.position.x) < 1 &&
-						// Math.abs(presentSpotMesh.position.z - player.modelMesh.position.z) < 1
-						// ) { 
-						// 	presentSpotMesh.material.color.set('seagreen');
-						// }
-					}
-				}
-			} else {
+
+			player.actions[1].play();
+			
+			if (
+				Math.abs(destinationPoint.x - player.modelMesh.position.x) < 0.1 &&
+				Math.abs(destinationPoint.z - player.modelMesh.position.z) < 0.1
+			) {
 				player.moving = false;
-				// 서 있는 상태
-				player.actions[1].stop();
 			}
+			console.log(destinationPoint.x , destinationPoint.z)
+
+			// 강의실 인터랙션
+			if (   // 파란색 포인트 지점(3*3사각형) 안에 도달시 
+			Math.abs(classroomSpotMesh.position.x - player.modelMesh.position.x) < 1.5 &&
+			Math.abs(classroomSpotMesh.position.z - player.modelMesh.position.z) < 1.5
+			){
+				if(!classroom.visible){
+
+					classroomSpotMesh.material.color.set('seagreen');
+					[classroom, classmate1, classmate2, classmate3, classmate4, classmate5, classmate6].forEach(obj => obj.loadModel());
+
+					// 카메라 각도 변환
+					gsap.to(
+						camera.position,
+						{
+							duration: 1,
+							y: 3
+						}
+					);
+			
+					setTimeout(()=>{
+						scene.add(classroomLight);
+						ppt1.visible = true;
+						ppt2.visible = false;
+						ppt3.visible = false;
+					}, 1000)
+					
+					setTimeout(()=>{
+						onion.loadModel();
+						classroomgamza.loadModel();
+						sweat.loadModel();
+					}, 200)
+
+					setTimeout(()=>{
+					}, 500)
+
+					player.moving = false;
+					triangle.visible = false;
+					// player 사라짐
+					gsap.to(
+						player.modelMesh.scale,
+						{
+							duration: 0.4,
+							x: 0,
+							y: 0,
+							z: 0,
+							ease: 'expo.easeOut'   // 튀어나옴 효과. 라이브러리가 가지고 있는 값.
+						}
+					);
+					
+					classroomSpotMesh.visible = false
+					// pointerMesh.visible = false
+					isPressed = false;
+					// 마우스 이벤트 비활성화
+					disableMouseEvents();
+
+
+					setTimeout(()=>{
+						ppt1.visible = false;
+						ppt2.visible = true;
+						ppt3.visible = false;
+
+						gsap.to(
+						ppt2,
+						{
+							duration: 1.4,
+							ease: 'Bounce.easeOut'   // 튀어나옴 효과. 라이브러리가 가지고 있는 값.
+						});
+					}, 3000)
+
+
+					setTimeout(()=>{
+						ppt1.visible = false;
+						ppt2.visible = false;
+						ppt3.visible = true;
+
+						gsap.to(
+						ppt3,
+						{
+							duration: 1.4,
+							ease: 'Bounce.easeOut'   // 튀어나옴 효과. 라이브러리가 가지고 있는 값.
+						}
+						);
+						
+						onion.actions[0].play();
+						classroomgamza.actions[0].play();
+							
+
+					}, 8000)
+
+					// classroomMusic.stop()
+
+					// 발표 인터랙션
+					// if (   // 파란색 포인트 지점(3*3사각형) 안에 도달시 
+					// Math.abs(presentSpotMesh.position.x - player.modelMesh.position.x) < 1 &&
+					// Math.abs(presentSpotMesh.position.z - player.modelMesh.position.z) < 1
+					// ) { 
+					// 	presentSpotMesh.material.color.set('seagreen');
+					// }
+				}
+			}
+		} else {
+			player.moving = false;
+			// 서 있는 상태
+			player.actions[1].stop();
 		}
-	
+	}
 
 	renderer.render(scene, camera);
 	renderer.setAnimationLoop(draw);
@@ -766,7 +717,28 @@ function draw() {
 
 
 
+
+
+
 /////// -------------------- 건들지 않는 부분 -------------------------
+
+// 시작 지점으로 가는 함수
+function startRun() {
+	// raycaster.setFromCamera(mouse, camera);
+	startDestinationPoint.x = 1;  // destinationPoint 목표 지점
+	startDestinationPoint.y = 0.3; // 위아래로는 움직이지 않기때문에 고정값
+	startDestinationPoint.z = 1;
+
+	if (player.moving) {
+		player.modelMesh.lookAt(destinationPoint);
+	}
+	player.modelMesh.lookAt(startDestinationPoint);  // 광선이 맞은 포인트 위치를 바라봄
+
+	if (player.modelMesh.position.x === startDestinationPoint.x) {
+		player.modelMesh.lookAt(camera)
+	}
+	player.modelMesh.rotation.y += Math.PI; // 180도 회전 추가 (필요하면 조정)
+}
 
 // 좌표 얻어내는 함수
 function checkIntersects() {
@@ -793,6 +765,7 @@ function checkIntersects() {
 }
 
 
+
 function setSize() {
 	camera.left = -(window.innerWidth / window.innerHeight);
 	camera.right = window.innerWidth / window.innerHeight;
@@ -813,11 +786,18 @@ function calculateMousePosition(e) {
 	mouse.y = -(e.clientY / canvas.clientHeight * 2 - 1);
 }
 
+// // 변환된 마우스 좌표를 이용해 래이캐스팅
+// function run() {
+// 	raycaster.setFromCamera(mouse, camera);
+// 	startRun();
+// }
+
 // 변환된 마우스 좌표를 이용해 래이캐스팅
 function raycasting() {
 	raycaster.setFromCamera(mouse, camera);
 	checkIntersects();
 }
+
 
 // 마우스 이벤트 핸들러 정의
 function onMouseDown(e) {
