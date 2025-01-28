@@ -52,7 +52,14 @@ const cameraPosition = new THREE.Vector3(1, 5, 5);
 camera.position.set(cameraPosition.x, cameraPosition.y, cameraPosition.z);
 camera.zoom = 0.07; // OrthographicCamera는 줌 설정 가능
 camera.updateProjectionMatrix();
-scene.add(camera);
+
+const camera2 = camera.clone()
+camera2.position.x = 0
+camera2.position.y = 10
+camera2.position.z = 0
+camera2.lookAt(0, 1, 0)
+
+scene.add(camera, camera2);
 
 // GUI
 const gui = new GUI();
@@ -290,18 +297,23 @@ const planeGeometry = new THREE.PlaneGeometry(9.6, 5.4)
 
 const pptMaterial1 = new THREE.MeshBasicMaterial({
 	map: pptTexture1,
+	transparent: true, // 필수 설정
 });
 const pptMaterial2 = new THREE.MeshBasicMaterial({
 	map: pptTexture2,
+	transparent: true, // 필수 설정
 });
 const pptMaterial3 = new THREE.MeshBasicMaterial({
 	map: pptTexture3,
+	transparent: true, // 필수 설정
 });
 const pptMaterial4 = new THREE.MeshBasicMaterial({
 	map: pptTexture4,
+	transparent: true, // 필수 설정
 });
 const pptMaterial5 = new THREE.MeshBasicMaterial({
 	map: pptTexture5,
+	transparent: true, // 필수 설정
 });
 
 const ppt1 = new THREE.Mesh(planeGeometry, pptMaterial1);
@@ -355,7 +367,7 @@ arrowTexture.colorSpace = THREE.SRGBColorSpace; // sRGB 색 공간 설정
 arrowTexture.needsUpdate = true;
 const arrow = new THREE.Mesh(arrowPlaneGeometry, arrowMaterial);
 arrow.position.x = 50.3
-arrow.position.y = 11
+// arrow.position.y = 11
 arrow.position.z = 16
 arrow.rotation.x = THREE.MathUtils.degToRad(-10)
 arrow.rotation.y = THREE.MathUtils.degToRad(8)
@@ -406,6 +418,8 @@ const classroom = new Model({
 // 	},
 // })
 
+const gamzaModels = []
+
 // 강의실 감자
 const classroomgamza = new ClassroomGamza({
 	scene,
@@ -427,6 +441,8 @@ const classroomgamza = new ClassroomGamza({
 		});
 	},
 });
+
+gamzaModels.push(classroomgamza)
 
 // 양파교수
 const onion = new Onion({
@@ -603,7 +619,7 @@ function draw() {
 			player.moving = true;  // 이동 시작
 		}, 7000);
 		started = true;
-	}
+	} 
 
 	if (player.modelMesh && started) camera.lookAt(player.modelMesh.position);
 
@@ -619,6 +635,7 @@ function draw() {
 		if (player.moving) {
 
 			scene.add(emotion)
+
 			if (emotion) {
 			// Y 좌표를 부드럽게 오르락내리락
 			emotion.position.y = 7 + Math.sin(elapsedTime * 3) * 0.4; // 3.5 ~ 4.5 범위에서 움직임
@@ -653,6 +670,9 @@ function draw() {
 			}
 			console.log(destinationPoint.x , destinationPoint.z)
 
+
+
+
 			// 강의실 인터랙션
 			if (   // 파란색 포인트 지점(3*3사각형) 안에 도달시 
 			Math.abs(classroomSpotMesh.position.x - player.modelMesh.position.x) < 1.5 &&
@@ -663,11 +683,6 @@ function draw() {
 					classroomSpotMesh.material.color.set('seagreen');
 					[classroom, classmate1, classmate2, classmate3, classmate4, classmate5, classmate6].forEach(obj => obj.loadModel());
 					scene.add(arrow)
-
-					if (arrow) {
-						// Y 좌표를 부드럽게 오르락내리락
-						arrow.position.y = 12 + Math.sin(elapsedTime * 3) * 0.5; // 3.5 ~ 4.5 범위에서 움직임
-						}
 
 					// 카메라 각도 변환
 					gsap.to(
@@ -680,11 +695,8 @@ function draw() {
 			
 					setTimeout(()=>{
 						scene.add(classroomLight);
-						
-						  
 						ppt1.visible = true
 						// ppt1.visible = true;
-
 					}, 1000)
 
 					
@@ -693,9 +705,6 @@ function draw() {
 						classroomgamza.loadModel();
 						// sweat.loadModel();
 					}, 200)
-
-					setTimeout(()=>{
-					}, 500)
 
 					player.moving = false;
 					emotion.visible = false;
@@ -717,89 +726,36 @@ function draw() {
 					// 마우스 이벤트 비활성화
 					disableMouseEvents();
 
-
-					// nextPresentation()
-					// ppt1.addEventListener('click', () => {
-					// 	ppt1.visible = false
-					// 	ppt2.visible = true
-					// })
 					checkIntersects2()
-
-
-
-					// setTimeout(()=>{
-					// 	ppt1.visible = false;
-					// 	ppt2.visible = true;
-					// 	gsap.to(
-					// 	ppt2,
-					// 	{
-					// 		duration: 1.4,
-					// 		ease: 'Bounce.easeOut'   // 튀어나옴 효과. 라이브러리가 가지고 있는 값.
-					// 	});
-					// }, 2000)
-
-					// setTimeout(()=>{
-					// 	ppt2.visible = false;
-					// 	ppt3.visible = true;
-					// 	gsap.to(
-					// 	ppt3,
-					// 	{
-					// 		duration: 1.4,
-					// 		ease: 'Bounce.easeOut'   // 튀어나옴 효과. 라이브러리가 가지고 있는 값.
-					// 	});
-					// }, 4000)
-
-					// setTimeout(()=>{
-					// 	ppt3.visible = false;
-					// 	ppt4.visible = true;
-					// 	gsap.to(
-					// 	ppt4,
-					// 	{
-					// 		duration: 1.4,
-					// 		ease: 'Bounce.easeOut'   // 튀어나옴 효과. 라이브러리가 가지고 있는 값.
-					// 	});
-					// }, 6000)
-
-
-					// setTimeout(()=>{
-					// 	ppt4.visible = false;
-					// 	ppt5.visible = true;
-					// 	gsap.to(
-					// 	ppt5,
-					// 	{
-					// 		duration: 1.4,
-					// 		ease: 'Bounce.easeOut'   // 튀어나옴 효과. 라이브러리가 가지고 있는 값.
-					// 	}
-					// 	);
-						
-					// 	onion.actions[0].play();
-					// 	classroomgamza.actions[0].play();
-
-					// }, 8000)
-
-					// classroomMusic.stop()
-
-					// 발표 인터랙션
-					// if (   // 파란색 포인트 지점(3*3사각형) 안에 도달시 
-					// Math.abs(presentSpotMesh.position.x - player.modelMesh.position.x) < 1 &&
-					// Math.abs(presentSpotMesh.position.z - player.modelMesh.position.z) < 1
-					// ) { 
-					// 	presentSpotMesh.material.color.set('seagreen');
-					// }
 				}
 			}
+
+
+
+			
 		} else {
 			player.moving = false;
 			// 서 있는 상태
 			player.actions[1].stop();
 		}
+
+		if (arrow) {
+			// Y 좌표를 부드럽게 오르락내리락
+			arrow.position.y = 12 + Math.sin(elapsedTime * 3) * 0.5; // 3.5 ~ 4.5 범위에서 움직임
+		}
 	}
 
-	renderer.render(scene, camera);
-	renderer.setAnimationLoop(draw);
+	if(!started) {
+		renderer.render(scene, camera2)
+	}else {
+		renderer.render(scene, camera);
+		
+	}
+
 }
 
 
+renderer.setAnimationLoop(draw);
 
 
 
@@ -874,39 +830,47 @@ function calculateMousePosition(e) {
 }
 
 
-
-
 // ppt 넘기기
-canvas.addEventListener('click', (e) => {
+function clickPresentation(e) {
 	mouse2.x = (e.clientX / canvas.clientWidth) * 2 - 1;
 	mouse2.y = -(e.clientY / canvas.clientHeight) * 2 + 1;
 	raycasting2();
-  });
+}
+
+canvas.addEventListener('click', clickPresentation);
   
-  function raycasting2() {
+function raycasting2() {
 	raycaster2.setFromCamera(mouse2, camera);
 	checkIntersects2();
-  }
+}
   
-  function checkIntersects2() {
+function checkIntersects2() {
 	const intersects2 = raycaster2.intersectObjects(presentations);
-  
-	if (intersects2.length > 0) {
-	  console.log('선택된 슬라이드:', intersects2[0].object.name);
-  
-	  // 다음 슬라이드로 이동
-	  currentSlideIndex = (currentSlideIndex + 1) % presentations.length;
-  
-	  // 슬라이드 보이기/숨기기 처리
-	  presentations.forEach((ppt, index) => {
-		ppt.visible = index === currentSlideIndex;
-	  });
-  
-	  console.log(`현재 슬라이드 인덱스: ${currentSlideIndex}`);
-	}
-  }
 
+	// 슬라이스 이동
+	if (intersects2.length > 0 ) {  
+		// 다음 슬라이드로 이동
+		currentSlideIndex = (currentSlideIndex + 1) % presentations.length;
 
+		// 슬라이드 보이기/숨기기 처리
+		presentations.forEach((ppt, index) => {
+		if (index === currentSlideIndex) {
+			ppt.visible = true;
+
+		ppt.material.transparent = true;
+		ppt.material.opacity = 0;
+
+		gsap.to(ppt.material, {
+			opacity: 1,
+			duration: 1.5,
+			onUpdate: () => (ppt.material.needsUpdate = true)
+		});
+		} else {
+			ppt.visible = false;
+		}
+		});
+}}
+ 
 
 // 변환된 마우스 좌표를 이용해 래이캐스팅
 function raycasting() {
