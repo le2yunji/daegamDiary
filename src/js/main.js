@@ -70,7 +70,6 @@ const cannonWolrd = new CANNON.World();
 cannonWolrd.gravity.set(0, -10, 0); // 중력 가속도 설정. 지구는 9.8, 측(방향)별로 세팅. y만 하면 됨.
 
 
-
 // Light
 const ambientLight = new THREE.AmbientLight('FFF8DA', 2.5);
 scene.add(ambientLight);
@@ -94,6 +93,7 @@ directionalLight.shadow.camera.near = -100;
 directionalLight.shadow.camera.far = 100;
 scene.add(directionalLight);
 
+
 // Mesh
 const meshes = [];
 const floorMesh = new THREE.Mesh(
@@ -108,6 +108,7 @@ floorMesh.receiveShadow = true;
 scene.add(floorMesh);
 meshes.push(floorMesh);
 // camera.lookAt(floorMesh)
+
 
 // 바닥 이미지 - 돌 감자
 const dolgamzaTexture = new THREE.TextureLoader().load('./images/rock_gamza.png')
@@ -179,21 +180,21 @@ const player = new Player({
 
 
 // 감자 머리 위 삼각형
-const triangleTexture = new THREE.TextureLoader().load('./images/smile.png')
-const trianglePlaneGeometry = new THREE.PlaneGeometry(2, 2);
-const triangleMaterial = new THREE.MeshBasicMaterial({
-	map: triangleTexture,
+const emotionTexture = new THREE.TextureLoader().load('./images/surprise.png')
+const emotionPlaneGeometry = new THREE.PlaneGeometry(2, 2);
+const emotionMaterial = new THREE.MeshBasicMaterial({
+	map: emotionTexture,
 	transparent: true, // PNG의 투명도 반영
 	alphaTest: 0.5, // 알파 값 기준
 });
-triangleTexture.colorSpace = THREE.SRGBColorSpace; // sRGB 색 공간 설정
-triangleTexture.needsUpdate = true;
-const triangle = new THREE.Mesh(trianglePlaneGeometry, triangleMaterial);
-// triangle.position.x = 10
-triangle.rotation.x = THREE.MathUtils.degToRad(-10)
-triangle.rotation.y = THREE.MathUtils.degToRad(8)
+emotionTexture.colorSpace = THREE.SRGBColorSpace; // sRGB 색 공간 설정
+emotionTexture.needsUpdate = true;
+const emotion = new THREE.Mesh(emotionPlaneGeometry, emotionMaterial);
+// emotion.position.x = 10
+emotion.rotation.x = THREE.MathUtils.degToRad(-10)
+emotion.rotation.y = THREE.MathUtils.degToRad(8)
 
-// triangle.position.z = 10
+// emotion.position.z = 10
 
 
 //// 감자 발자국
@@ -282,6 +283,8 @@ classroomLight.shadow.camera.far = 5;
 const pptTexture1 = new THREE.TextureLoader().load('./images/ppt1.png')
 const pptTexture2 = new THREE.TextureLoader().load('./images/ppt2.png')
 const pptTexture3 = new THREE.TextureLoader().load('./images/ppt3.png')
+const pptTexture4 = new THREE.TextureLoader().load('./images/ppt4.png')
+const pptTexture5 = new THREE.TextureLoader().load('./images/ppt5.png')
 
 const planeGeometry = new THREE.PlaneGeometry(9.6, 5.4)
 
@@ -294,24 +297,68 @@ const pptMaterial2 = new THREE.MeshBasicMaterial({
 const pptMaterial3 = new THREE.MeshBasicMaterial({
 	map: pptTexture3,
 });
+const pptMaterial4 = new THREE.MeshBasicMaterial({
+	map: pptTexture4,
+});
+const pptMaterial5 = new THREE.MeshBasicMaterial({
+	map: pptTexture5,
+});
 
 const ppt1 = new THREE.Mesh(planeGeometry, pptMaterial1);
 const ppt2 = new THREE.Mesh(planeGeometry, pptMaterial2);
 const ppt3 = new THREE.Mesh(planeGeometry, pptMaterial3);
+const ppt4 = new THREE.Mesh(planeGeometry, pptMaterial4);
+const ppt5 = new THREE.Mesh(planeGeometry, pptMaterial5);
 
 ppt1.position.set(50.3, 5.45, 15.5)
 ppt1.scale.set(1.435, 1.45, 1.45)
+ppt1.name = 'ppt1';
+
 ppt2.position.set(50.3, 5.45, 15.5)
 ppt2.scale.set(1.435, 1.45, 1.45)
+ppt2.name = 'ppt2';
+
 ppt3.position.set(50.3, 5.45, 15.5)
 ppt3.scale.set(1.435, 1.45, 1.45)
+ppt3.name = 'ppt3';
 
+ppt4.position.set(50.3, 5.45, 15.5)
+ppt4.scale.set(1.435, 1.45, 1.45)
+ppt4.name = 'ppt4';
 
-scene.add(ppt1, ppt2, ppt3);
+ppt5.position.set(50.3, 5.45, 15.5)
+ppt5.scale.set(1.435, 1.45, 1.45)
+ppt5.name = 'ppt5';
+
+scene.add(ppt1, ppt2, ppt3, ppt4, ppt5);
 
 ppt1.visible = false
 ppt2.visible = false
 ppt3.visible = false
+ppt4.visible = false
+ppt5.visible = false
+
+const presentations = [ppt1,ppt2,ppt3,ppt4,ppt5]
+// 그룹화가 필요하지 않은 상황이므로 presentations 배열 사용
+let currentSlideIndex = -1; // 시작 상태는 모든 슬라이드 숨김
+
+
+// ppt 위 화살표
+const arrowTexture = new THREE.TextureLoader().load('./images/arrow.png')
+const arrowPlaneGeometry = new THREE.PlaneGeometry(2, 2);
+const arrowMaterial = new THREE.MeshBasicMaterial({
+	map: arrowTexture,
+	transparent: true, // PNG의 투명도 반영
+	alphaTest: 0.5, // 알파 값 기준
+});
+arrowTexture.colorSpace = THREE.SRGBColorSpace; // sRGB 색 공간 설정
+arrowTexture.needsUpdate = true;
+const arrow = new THREE.Mesh(arrowPlaneGeometry, arrowMaterial);
+arrow.position.x = 50.3
+arrow.position.y = 11
+arrow.position.z = 16
+arrow.rotation.x = THREE.MathUtils.degToRad(-10)
+arrow.rotation.y = THREE.MathUtils.degToRad(8)
 
 
 // 강의실
@@ -337,27 +384,27 @@ const classroom = new Model({
 	},
 });
 
-const sweat = new Model({
-	gltfLoader,
-	scene,
-	modelSrc: './models/sweat.glb',
-	x: 58,  
-	y: 5,
-	// y: 5.05,
-	z: 17.5, 
-	rotationY: THREE.MathUtils.degToRad(90),
-	// scaleX: 4,
-	// scaleY: 4,
-	// scaleX: 4,
-	onLoad: (modelMesh) => {
-		// 모델이 로드된 후에 GSAP 애니메이션 실행
-		gsap.to(modelMesh.position, {
-			duration: 1,
-			y: 4,
-			ease: 'Bounce.easeOut',
-		});
-	},
-})
+// const sweat = new Model({
+// 	gltfLoader,
+// 	scene,
+// 	modelSrc: './models/sweat.glb',
+// 	x: 58,  
+// 	y: 5,
+// 	// y: 5.05,
+// 	z: 17.5, 
+// 	rotationY: THREE.MathUtils.degToRad(90),
+// 	// scaleX: 4,
+// 	// scaleY: 4,
+// 	// scaleX: 4,
+// 	onLoad: (modelMesh) => {
+// 		// 모델이 로드된 후에 GSAP 애니메이션 실행
+// 		gsap.to(modelMesh.position, {
+// 			duration: 1,
+// 			y: 4,
+// 			ease: 'Bounce.easeOut',
+// 		});
+// 	},
+// })
 
 // 강의실 감자
 const classroomgamza = new ClassroomGamza({
@@ -534,6 +581,9 @@ let angle = 0;
 let isPressed = false; // 마우스를 누르고 있는 상태
 let started = false;
 
+const raycaster2 = new THREE.Raycaster();
+const mouse2 = new THREE.Vector2();
+
 
 // 그리기
 const clock = new THREE.Clock();
@@ -562,15 +612,16 @@ function draw() {
 		// 마우스를 누르고있을 때
 		if (isPressed) {
 			raycasting();
+			raycasting2();
 		}
 
 		// 감자가 움직일 때
 		if (player.moving) {
 
-			scene.add(triangle)
-			if (triangle) {
+			scene.add(emotion)
+			if (emotion) {
 			// Y 좌표를 부드럽게 오르락내리락
-			triangle.position.y = 7 + Math.sin(elapsedTime * 3) * 0.4; // 3.5 ~ 4.5 범위에서 움직임
+			emotion.position.y = 7 + Math.sin(elapsedTime * 3) * 0.4; // 3.5 ~ 4.5 범위에서 움직임
 			}
 
 			// 걸어가는 상태
@@ -587,9 +638,9 @@ function draw() {
 			camera.position.z = cameraPosition.z + player.modelMesh.position.z;
 
 			// 머리 위 삼각형도 따라가기
-			if (triangle) {
-				triangle.position.x = player.modelMesh.position.x;
-				triangle.position.z = player.modelMesh.position.z;
+			if (emotion) {
+				emotion.position.x = player.modelMesh.position.x;
+				emotion.position.z = player.modelMesh.position.z;
 			}
 
 			player.actions[1].play();
@@ -611,6 +662,12 @@ function draw() {
 
 					classroomSpotMesh.material.color.set('seagreen');
 					[classroom, classmate1, classmate2, classmate3, classmate4, classmate5, classmate6].forEach(obj => obj.loadModel());
+					scene.add(arrow)
+
+					if (arrow) {
+						// Y 좌표를 부드럽게 오르락내리락
+						arrow.position.y = 12 + Math.sin(elapsedTime * 3) * 0.5; // 3.5 ~ 4.5 범위에서 움직임
+						}
 
 					// 카메라 각도 변환
 					gsap.to(
@@ -623,22 +680,25 @@ function draw() {
 			
 					setTimeout(()=>{
 						scene.add(classroomLight);
-						ppt1.visible = true;
-						ppt2.visible = false;
-						ppt3.visible = false;
+						
+						  
+						ppt1.visible = true
+						// ppt1.visible = true;
+
 					}, 1000)
+
 					
 					setTimeout(()=>{
 						onion.loadModel();
 						classroomgamza.loadModel();
-						sweat.loadModel();
+						// sweat.loadModel();
 					}, 200)
 
 					setTimeout(()=>{
 					}, 500)
 
 					player.moving = false;
-					triangle.visible = false;
+					emotion.visible = false;
 					// player 사라짐
 					gsap.to(
 						player.modelMesh.scale,
@@ -658,38 +718,64 @@ function draw() {
 					disableMouseEvents();
 
 
-					setTimeout(()=>{
-						ppt1.visible = false;
-						ppt2.visible = true;
-						ppt3.visible = false;
-
-						gsap.to(
-						ppt2,
-						{
-							duration: 1.4,
-							ease: 'Bounce.easeOut'   // 튀어나옴 효과. 라이브러리가 가지고 있는 값.
-						});
-					}, 3000)
+					// nextPresentation()
+					// ppt1.addEventListener('click', () => {
+					// 	ppt1.visible = false
+					// 	ppt2.visible = true
+					// })
+					checkIntersects2()
 
 
-					setTimeout(()=>{
-						ppt1.visible = false;
-						ppt2.visible = false;
-						ppt3.visible = true;
 
-						gsap.to(
-						ppt3,
-						{
-							duration: 1.4,
-							ease: 'Bounce.easeOut'   // 튀어나옴 효과. 라이브러리가 가지고 있는 값.
-						}
-						);
+					// setTimeout(()=>{
+					// 	ppt1.visible = false;
+					// 	ppt2.visible = true;
+					// 	gsap.to(
+					// 	ppt2,
+					// 	{
+					// 		duration: 1.4,
+					// 		ease: 'Bounce.easeOut'   // 튀어나옴 효과. 라이브러리가 가지고 있는 값.
+					// 	});
+					// }, 2000)
+
+					// setTimeout(()=>{
+					// 	ppt2.visible = false;
+					// 	ppt3.visible = true;
+					// 	gsap.to(
+					// 	ppt3,
+					// 	{
+					// 		duration: 1.4,
+					// 		ease: 'Bounce.easeOut'   // 튀어나옴 효과. 라이브러리가 가지고 있는 값.
+					// 	});
+					// }, 4000)
+
+					// setTimeout(()=>{
+					// 	ppt3.visible = false;
+					// 	ppt4.visible = true;
+					// 	gsap.to(
+					// 	ppt4,
+					// 	{
+					// 		duration: 1.4,
+					// 		ease: 'Bounce.easeOut'   // 튀어나옴 효과. 라이브러리가 가지고 있는 값.
+					// 	});
+					// }, 6000)
+
+
+					// setTimeout(()=>{
+					// 	ppt4.visible = false;
+					// 	ppt5.visible = true;
+					// 	gsap.to(
+					// 	ppt5,
+					// 	{
+					// 		duration: 1.4,
+					// 		ease: 'Bounce.easeOut'   // 튀어나옴 효과. 라이브러리가 가지고 있는 값.
+					// 	}
+					// 	);
 						
-						onion.actions[0].play();
-						classroomgamza.actions[0].play();
-							
+					// 	onion.actions[0].play();
+					// 	classroomgamza.actions[0].play();
 
-					}, 8000)
+					// }, 8000)
 
 					// classroomMusic.stop()
 
@@ -743,7 +829,6 @@ function startRun() {
 // 좌표 얻어내는 함수
 function checkIntersects() {
 	// raycaster.setFromCamera(mouse, camera);
-
 	const intersects = raycaster.intersectObjects(meshes);
 	for (const item of intersects) {
 		if (item.object.name === 'floor') {   // 바닥을 클릭했을 때
@@ -780,17 +865,48 @@ function setSize() {
 // 이벤트
 window.addEventListener('resize', setSize);
 
+
+
 // 마우스 좌표를 three.js에 맞게 변환 
 function calculateMousePosition(e) {
 	mouse.x = e.clientX / canvas.clientWidth * 2 - 1;
 	mouse.y = -(e.clientY / canvas.clientHeight * 2 - 1);
 }
 
-// // 변환된 마우스 좌표를 이용해 래이캐스팅
-// function run() {
-// 	raycaster.setFromCamera(mouse, camera);
-// 	startRun();
-// }
+
+
+
+// ppt 넘기기
+canvas.addEventListener('click', (e) => {
+	mouse2.x = (e.clientX / canvas.clientWidth) * 2 - 1;
+	mouse2.y = -(e.clientY / canvas.clientHeight) * 2 + 1;
+	raycasting2();
+  });
+  
+  function raycasting2() {
+	raycaster2.setFromCamera(mouse2, camera);
+	checkIntersects2();
+  }
+  
+  function checkIntersects2() {
+	const intersects2 = raycaster2.intersectObjects(presentations);
+  
+	if (intersects2.length > 0) {
+	  console.log('선택된 슬라이드:', intersects2[0].object.name);
+  
+	  // 다음 슬라이드로 이동
+	  currentSlideIndex = (currentSlideIndex + 1) % presentations.length;
+  
+	  // 슬라이드 보이기/숨기기 처리
+	  presentations.forEach((ppt, index) => {
+		ppt.visible = index === currentSlideIndex;
+	  });
+  
+	  console.log(`현재 슬라이드 인덱스: ${currentSlideIndex}`);
+	}
+  }
+
+
 
 // 변환된 마우스 좌표를 이용해 래이캐스팅
 function raycasting() {
