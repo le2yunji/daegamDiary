@@ -78,7 +78,7 @@ cannonWolrd.gravity.set(0, -10, 0); // 중력 가속도 설정. 지구는 9.8, �
 
 
 // Light
-const ambientLight = new THREE.AmbientLight('FFF8DA', 2.5);
+const ambientLight = new THREE.AmbientLight('#fff', 2.5);
 scene.add(ambientLight);
 
 const directionalLight = new THREE.DirectionalLight('white', 0.5);
@@ -287,75 +287,51 @@ classroomLight.shadow.camera.near = 1;
 classroomLight.shadow.camera.far = 5;
 
 // ppt화면
-const pptTexture1 = new THREE.TextureLoader().load('./images/ppt1.png')
-const pptTexture2 = new THREE.TextureLoader().load('./images/ppt2.png')
-const pptTexture3 = new THREE.TextureLoader().load('./images/ppt3.png')
-const pptTexture4 = new THREE.TextureLoader().load('./images/ppt4.png')
-const pptTexture5 = new THREE.TextureLoader().load('./images/ppt5.png')
+const planeGeometry = new THREE.PlaneGeometry(9.6, 5.4);
+const presentations = [];
+const texturePaths = [
+  './images/ppt1.png',
+  './images/ppt2.png',
+  './images/ppt3.png',
+  './images/ppt4.png',
+  './images/ppt5.png',
+];
 
-const planeGeometry = new THREE.PlaneGeometry(9.6, 5.4)
+const loader = new THREE.TextureLoader();
 
-const pptMaterial1 = new THREE.MeshBasicMaterial({
-	map: pptTexture1,
-	transparent: true, // 필수 설정
+function createSlide(texturePath, index) {
+  const material = new THREE.MeshBasicMaterial({
+    transparent: true,
+    opacity: 0, // 초기 로딩 전 텍스처 보이지 않음
+  });
+
+  const slide = new THREE.Mesh(planeGeometry, material);
+  slide.position.set(50.3, 5.45, 15.5);
+  slide.scale.set(1.435, 1.45, 1.45);
+  slide.name = `ppt${index + 1}`;
+  slide.visible = false; // 초기에는 보이지 않음
+
+  // Lazy loading 텍스처 적용
+  loader.load(texturePath, (texture) => {
+    material.map = texture;
+    material.opacity = 1;
+    material.needsUpdate = true;
+  });
+
+  presentations.push(slide);
+  scene.add(slide);
+}
+
+// 슬라이드 생성
+texturePaths.forEach((path, index) => {
+  createSlide(path, index);
 });
-const pptMaterial2 = new THREE.MeshBasicMaterial({
-	map: pptTexture2,
-	transparent: true, // 필수 설정
-});
-const pptMaterial3 = new THREE.MeshBasicMaterial({
-	map: pptTexture3,
-	transparent: true, // 필수 설정
-});
-const pptMaterial4 = new THREE.MeshBasicMaterial({
-	map: pptTexture4,
-	transparent: true, // 필수 설정
-});
-const pptMaterial5 = new THREE.MeshBasicMaterial({
-	map: pptTexture5,
-	transparent: true, // 필수 설정
-});
 
-const ppt1 = new THREE.Mesh(planeGeometry, pptMaterial1);
-const ppt2 = new THREE.Mesh(planeGeometry, pptMaterial2);
-const ppt3 = new THREE.Mesh(planeGeometry, pptMaterial3);
-const ppt4 = new THREE.Mesh(planeGeometry, pptMaterial4);
-const ppt5 = new THREE.Mesh(planeGeometry, pptMaterial5);
-
-ppt1.position.set(50.3, 5.45, 15.5)
-ppt1.scale.set(1.435, 1.45, 1.45)
-ppt1.name = 'ppt1';
-
-ppt2.position.set(50.3, 5.45, 15.5)
-ppt2.scale.set(1.435, 1.45, 1.45)
-ppt2.name = 'ppt2';
-
-ppt3.position.set(50.3, 5.45, 15.5)
-ppt3.scale.set(1.435, 1.45, 1.45)
-ppt3.name = 'ppt3';
-
-ppt4.position.set(50.3, 5.45, 15.5)
-ppt4.scale.set(1.435, 1.45, 1.45)
-ppt4.name = 'ppt4';
-
-ppt5.position.set(50.3, 5.45, 15.5)
-ppt5.scale.set(1.435, 1.45, 1.45)
-ppt5.name = 'ppt5';
-
-scene.add(ppt1, ppt2, ppt3, ppt4, ppt5);
-
-ppt1.visible = false
-ppt2.visible = false
-ppt3.visible = false
-ppt4.visible = false
-ppt5.visible = false
-
-const presentations = [ppt1,ppt2,ppt3,ppt4,ppt5]
-// 그룹화가 필요하지 않은 상황이므로 presentations 배열 사용
-let currentSlideIndex = -1; // 시작 상태는 모든 슬라이드 숨김
+// 테스트를 위해 첫 슬라이드만 보이도록 설정
+// presentations[0].visible = true;
 
 
-// ppt 위 화살표
+// 화살표
 const arrowTexture = new THREE.TextureLoader().load('./images/arrow.png')
 const arrowPlaneGeometry = new THREE.PlaneGeometry(2, 2);
 const arrowMaterial = new THREE.MeshBasicMaterial({
@@ -366,11 +342,55 @@ const arrowMaterial = new THREE.MeshBasicMaterial({
 arrowTexture.colorSpace = THREE.SRGBColorSpace; // sRGB 색 공간 설정
 arrowTexture.needsUpdate = true;
 const arrow = new THREE.Mesh(arrowPlaneGeometry, arrowMaterial);
-arrow.position.x = 50.3
-// arrow.position.y = 11
-arrow.position.z = 16
-arrow.rotation.x = THREE.MathUtils.degToRad(-10)
-arrow.rotation.y = THREE.MathUtils.degToRad(8)
+// arrow.position.x = 50.3
+// // arrow.position.y = 11
+// arrow.position.z = 16
+// arrow.rotation.x = THREE.MathUtils.degToRad(-10)
+// arrow.rotation.y = THREE.MathUtils.degToRad(8)
+// scene.add(arrow)
+
+
+
+const arrowPositions = [
+	{ x: 50.3, y: 12, z: 16, rotationX: -10, rotationY: 8 }, // 기본값 포함
+	{ x: 57, y: 6, z: 17.5, rotationX: -10, rotationY: 8 },
+  ];
+  
+  const arrows = arrowPositions.map(pos => {
+	const arrowClone = arrow.clone(); // arrow 복제
+	arrowClone.position.set(pos.x, pos.y, pos.z); // y 기본값 설정
+	arrowClone.rotation.set(
+	  THREE.MathUtils.degToRad(pos.rotationX),
+	  THREE.MathUtils.degToRad(pos.rotationY),
+	  0
+	);
+	scene.add(arrowClone);
+	arrowClone.visible = false; // 기본은 숨겨진 상태
+	return arrowClone;
+  });
+
+  function showArrowAt(index) {
+	if (index < arrows.length) {
+	  arrows.forEach(arrow => (arrow.visible = false)); // 다른 화살표 숨기기
+	  arrows[index].visible = true; // 해당 화살표 보이기
+	}
+  }
+
+  function animateArrows(elapsedTime) {
+	arrows.forEach(arrow => {
+	  if (arrow.visible) {
+		// Y 좌표를 부드럽게 오르락내리락
+		arrow.position.y = arrow.originalY + Math.sin(elapsedTime * 3) * 0.5;
+	  }
+	});
+  }
+  
+  // 원래 y 좌표를 기록
+  arrows.forEach(arrow => {
+	arrow.originalY = arrow.position.y ;
+  });
+  
+	  
 
 
 // 강의실
@@ -589,6 +609,57 @@ const classmate6 = new Classmate({
 	},
 });
 
+
+// 강의실 인터랙션
+function handleClassroomInteraction() {
+    if (
+      Math.abs(classroomSpotMesh.position.x - player.modelMesh.position.x) < 1.5 &&
+      Math.abs(classroomSpotMesh.position.z - player.modelMesh.position.z) < 1.5
+    ) {
+      if (!classroom.visible) {
+        classroomSpotMesh.material.color.set('seagreen');
+        [classroom, classmate1, classmate2, classmate3, classmate4, classmate5, classmate6].forEach(obj => obj.loadModel());
+  
+        showArrowAt(0); // 첫 번째 화살표 보이기
+  
+        // 카메라 각도 변환
+        gsap.to(camera.position, {
+          duration: 1,
+          y: 3
+        });
+  
+        player.moving = false;
+        emotion.visible = false;
+  
+        // player 사라짐
+        gsap.to(player.modelMesh.scale, {
+          duration: 0.4,
+          x: 0,
+          y: 0,
+          z: 0,
+          ease: 'expo.easeOut'
+        });
+  
+        classroomSpotMesh.visible = false;
+        isPressed = false;
+  
+        disableMouseEvents();
+  
+        setTimeout(() => {
+          scene.add(classroomLight);
+        }, 1000);
+  
+        setTimeout(() => {
+          onion.loadModel();
+          classroomgamza.loadModel();
+          enableSlideInteractions(); // 슬라이드 인터랙션 활성화
+        }, 200);
+      }
+    }
+  }
+
+
+
 const raycaster = new THREE.Raycaster();
 let mouse = new THREE.Vector2();
 let destinationPoint = new THREE.Vector3();
@@ -628,7 +699,6 @@ function draw() {
 		// 마우스를 누르고있을 때
 		if (isPressed) {
 			raycasting();
-			raycasting2();
 		}
 
 		// 감자가 움직일 때
@@ -670,67 +740,9 @@ function draw() {
 			}
 			console.log(destinationPoint.x , destinationPoint.z)
 
-
-
-
 			// 강의실 인터랙션
-			if (   // 파란색 포인트 지점(3*3사각형) 안에 도달시 
-			Math.abs(classroomSpotMesh.position.x - player.modelMesh.position.x) < 1.5 &&
-			Math.abs(classroomSpotMesh.position.z - player.modelMesh.position.z) < 1.5
-			){
-				if(!classroom.visible){
-
-					classroomSpotMesh.material.color.set('seagreen');
-					[classroom, classmate1, classmate2, classmate3, classmate4, classmate5, classmate6].forEach(obj => obj.loadModel());
-					scene.add(arrow)
-
-					// 카메라 각도 변환
-					gsap.to(
-						camera.position,
-						{
-							duration: 1,
-							y: 3
-						}
-					);
-			
-					setTimeout(()=>{
-						scene.add(classroomLight);
-						ppt1.visible = true
-						// ppt1.visible = true;
-					}, 1000)
-
-					
-					setTimeout(()=>{
-						onion.loadModel();
-						classroomgamza.loadModel();
-						// sweat.loadModel();
-					}, 200)
-
-					player.moving = false;
-					emotion.visible = false;
-					// player 사라짐
-					gsap.to(
-						player.modelMesh.scale,
-						{
-							duration: 0.4,
-							x: 0,
-							y: 0,
-							z: 0,
-							ease: 'expo.easeOut'   // 튀어나옴 효과. 라이브러리가 가지고 있는 값.
-						}
-					);
-					
-					classroomSpotMesh.visible = false
-					// pointerMesh.visible = false
-					isPressed = false;
-					// 마우스 이벤트 비활성화
-					disableMouseEvents();
-
-					checkIntersects2()
-				}
-			}
-
-
+			handleClassroomInteraction()
+		
 
 			
 		} else {
@@ -739,10 +751,12 @@ function draw() {
 			player.actions[1].stop();
 		}
 
-		if (arrow) {
-			// Y 좌표를 부드럽게 오르락내리락
-			arrow.position.y = 12 + Math.sin(elapsedTime * 3) * 0.5; // 3.5 ~ 4.5 범위에서 움직임
-		}
+		// if (arrow) {
+		// 	// Y 좌표를 부드럽게 오르락내리락
+		// 	arrow.position.y = 12 + Math.sin(elapsedTime * 3) * 0.5; // 3.5 ~ 4.5 범위에서 움직임
+		// }
+		animateArrows(elapsedTime); // 화살표 애니메이션 추가
+
 	}
 
 	if(!started) {
@@ -829,48 +843,63 @@ function calculateMousePosition(e) {
 	mouse.y = -(e.clientY / canvas.clientHeight * 2 - 1);
 }
 
-
 // ppt 넘기기
+let slidesEnabled = false; // 슬라이드 활성화 플래그
+let currentSlideIndex = -1;
+
+function enableSlideInteractions() {
+  slidesEnabled = true;
+  canvas.addEventListener('click', clickPresentation);
+}
+
 function clickPresentation(e) {
-	mouse2.x = (e.clientX / canvas.clientWidth) * 2 - 1;
-	mouse2.y = -(e.clientY / canvas.clientHeight) * 2 + 1;
-	raycasting2();
+  if (!slidesEnabled) return; // 슬라이드가 활성화되지 않으면 무시
+
+  mouse2.x = (e.clientX / canvas.clientWidth) * 2 - 1;
+  mouse2.y = -(e.clientY / canvas.clientHeight) * 2 + 1;
+  raycasting2();
 }
 
-canvas.addEventListener('click', clickPresentation);
-  
 function raycasting2() {
-	raycaster2.setFromCamera(mouse2, camera);
-	checkIntersects2();
+  raycaster2.setFromCamera(mouse2, camera);
+  checkIntersects2();
 }
-  
+
 function checkIntersects2() {
-	const intersects2 = raycaster2.intersectObjects(presentations);
+  const intersects2 = raycaster2.intersectObjects(presentations);
 
-	// 슬라이스 이동
-	if (intersects2.length > 0 ) {  
-		// 다음 슬라이드로 이동
-		currentSlideIndex = (currentSlideIndex + 1) % presentations.length;
+  if (intersects2.length > 0) {
+    currentSlideIndex = (currentSlideIndex + 1);
 
-		// 슬라이드 보이기/숨기기 처리
-		presentations.forEach((ppt, index) => {
-		if (index === currentSlideIndex) {
-			ppt.visible = true;
+    if (currentSlideIndex >= presentations.length) {
+      canvas.removeEventListener('click', clickPresentation);
 
-		ppt.material.transparent = true;
-		ppt.material.opacity = 0;
+      slidesEnabled = false;
 
-		gsap.to(ppt.material, {
-			opacity: 1,
-			duration: 1.5,
-			onUpdate: () => (ppt.material.needsUpdate = true)
-		});
-		} else {
-			ppt.visible = false;
-		}
-		});
-}}
- 
+	   // 첫 번째 화살표 숨기고 두 번째 화살표 표시
+	   showArrowAt(1);
+      return;
+    }
+
+    // 슬라이드 보이기/숨기기 처리
+    presentations.forEach((ppt, index) => {
+      if (index === currentSlideIndex && ppt.material.map) {
+        ppt.visible = true;
+        ppt.material.transparent = true;
+        ppt.material.opacity = 0;
+
+        gsap.to(ppt.material, {
+          opacity: 1,
+          duration: 1.5,
+          onUpdate: () => (ppt.material.needsUpdate = true),
+        });
+      } else {
+        ppt.visible = false;
+      }
+    });
+  }
+}
+
 
 // 변환된 마우스 좌표를 이용해 래이캐스팅
 function raycasting() {
@@ -941,6 +970,3 @@ function enableMouseEvents() {
 }
 
 draw();
-
-
-
