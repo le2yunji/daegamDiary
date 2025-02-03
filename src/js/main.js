@@ -276,8 +276,13 @@ const emotionMaterial = new THREE.MeshBasicMaterial({
 emotionTexture.colorSpace = THREE.SRGBColorSpace; // sRGB 색 공간 설정
 emotionTexture.needsUpdate = true;
 const emotion = new THREE.Mesh(emotionPlaneGeometry, emotionMaterial);
+// emotion.position.x = 10
 emotion.rotation.x = THREE.MathUtils.degToRad(-10)
 emotion.rotation.y = THREE.MathUtils.degToRad(8)
+
+
+
+// emotion.position.z = 10
 
 
 // #S-4 강의실에서 발표하는 대감이
@@ -351,6 +356,24 @@ classroomSpotMesh.position.set(50, 0.005, 20);
 classroomSpotMesh.rotation.x = THREE.MathUtils.degToRad(-90)
 classroomSpotMesh.receiveShadow = true;
 scene.add(classroomSpotMesh);
+
+
+// const classroomFloor = new THREE.Mesh(
+// 	new THREE.PlaneGeometry(50, 28),
+// 	new THREE.MeshBasicMaterial({
+// 		color: 'white',
+// 		transparent: true,
+// 		opacity: 1,
+// 	})
+// );
+// classroomFloor.rotation.x = -Math.PI/2;
+// classroomFloor.position.x = 50
+// classroomFloor.position.z = 20
+// classroomFloor.position.y = 0.3;
+// classroomFloor.receiveShadow = true;
+// scene.add(classroomFloor);
+
+
 
 //강의실 햇빛
 const classroomSunLight = new THREE.RectAreaLight('#FFF8DA', 3, 12, 4)
@@ -686,6 +709,18 @@ function loadModelIfNeeded(model) {
     }
 }
 
+function checkAllModelsLoaded() {
+    return classroom.loaded && 
+           classmate1.loaded && 
+           classmate2.loaded && 
+           classmate3.loaded && 
+           classmate4.loaded && 
+           classmate5.loaded && 
+           classmate6.loaded && 
+           onion1.loaded && 
+           classroomgamza2.loaded;
+}
+
 // 강의실 인터랙션
 function handleClassroomInteraction() {
     if (
@@ -694,9 +729,8 @@ function handleClassroomInteraction() {
     ) {
       if (!classroom.visible) {
         classroomSpotMesh.material.color.set('seagreen');
-		[classroom, classmate1, classmate2, classmate3, classmate4, classmate5, classmate6].forEach(loadModelIfNeeded);
+		[classroom, classmate1, classmate2, classmate3, classmate4, classmate5, classmate6, onion1, classroomgamza2].forEach(loadModelIfNeeded);
 		scene.add(classroomLight, classroomSunLight);
-
 
         showArrowAt(0); // 첫 번째 화살표 보이기
 		
@@ -728,14 +762,13 @@ function handleClassroomInteraction() {
 		// //   scene.add(classroomSunLight);
         // }, 1000);
   
-        setTimeout(() => {
-          onion1.loadModel();
-          classroomgamza2.loadModel();
-	  talk3.visible = true
-          enableSlideInteractions(); // 슬라이드 인터랙션 활성화
-		
-        }, 200);
-		
+		let checkInterval = setInterval(() => {
+			if (checkAllModelsLoaded()) {
+				clearInterval(checkInterval);
+				talk3.visible = true;
+				enableSlideInteractions(); // PPT 활성화
+			}
+		}, 500); // 0.5초마다 체크
       }
     }
   }
@@ -868,7 +901,11 @@ function draw() {
 	}
 
 }
+
+
 renderer.setAnimationLoop(draw);
+
+
 
 
 
@@ -917,6 +954,7 @@ function checkIntersects() {
 	}
 
 }
+
 
 function setSize() {
 	camera.left = -(window.innerWidth / window.innerHeight);
@@ -1070,3 +1108,6 @@ function enableMouseEvents() {
 }
 
 draw();
+
+
+
