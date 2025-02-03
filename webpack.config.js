@@ -10,10 +10,9 @@ const webpackMode = process.env.NODE_ENV || 'development';
 module.exports = {
 	mode: webpackMode,
 	entry: {
-		load: path.resolve(__dirname, './src/js/loading.js'),
-		start: path.resolve(__dirname, './src/js/start.js'),
-		// main: path.resolve(__dirname, './src/js/main.js'),
-		main: path.resolve(__dirname, './src/js/main.js'),
+		load: path.resolve(__dirname, 'src/js/loading.js'),
+		start: path.resolve(__dirname, 'src/js/start.js'),
+		main: path.resolve(__dirname, 'src/js/main.js'),
 	},
 	output: {
 		path: path.resolve(__dirname, 'dist'), // 빌드 후 파일이 저장될 경로
@@ -64,7 +63,33 @@ module.exports = {
 				generator: {
 					filename: 'images/[name][ext]',  // 빌드 시 이미지 경로 지정
 				},
-			}
+			},
+			// 2. GLTF 모델 파일 로딩
+            {
+                test: /\.glb$/,
+                use: [
+                    {
+                        loader: 'file-loader',
+                        options: {
+                            name: '[name].[hash:8].[ext]',
+                            outputPath: 'assets/models/', // 모델 파일이 위치할 디렉토리
+                        }
+                    }
+                ]
+            },
+            // 3. Draco 압축 파일 로딩
+            {
+                test: /draco_decoder\.js$/,
+                use: [
+                    {
+                        loader: 'file-loader',
+                        options: {
+                            name: '[name].[hash:8].[ext]',
+                            outputPath: 'libs/draco/', // Draco 디코더 파일이 위치할 디렉토리
+                        }
+                    }
+                ]
+            },
 		]
 	},
 	plugins: [
@@ -85,4 +110,3 @@ module.exports = {
 		})
 	]
 };
-console.log(__dirname)
