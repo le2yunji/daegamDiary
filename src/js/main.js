@@ -1,7 +1,6 @@
 import * as THREE from 'three';
 // import * as BufferGeometryUtils from 'three'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
-import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader';
 import { Player } from './classes/Player';
 import { Onion } from './classes/Onion';
 import { ClassroomGamza } from './classes/ClassroomGamza';
@@ -55,12 +54,10 @@ camera.zoom = 0.07; // OrthographicCamera는 줌 설정 가능
 camera.updateProjectionMatrix();
 
 const camera2 = camera.clone()
-camera2.position.x = 0
-camera2.position.y = 10
-camera2.position.z = 0
-camera2.lookAt(0, 1, 0)
+
 
 scene.add(camera, camera2);
+
 
 // GUI
 const gui = new GUI();
@@ -168,24 +165,20 @@ pointerMesh.receiveShadow = true;
 scene.add(pointerMesh);
 
 
-const gltfLoader = new GLTFLoader();
-
-// DRACO 로더 설정
-const dracoLoader = new DRACOLoader();
-dracoLoader.setDecoderPath('/public/draco/'); // 여기에 DRACO 디코더 파일 경로 설정
-dracoLoader.setDecoderConfig({ type: 'js' }); // WebAssembly 또는 JS 버전 설정 가능
-gltfLoader.setDRACOLoader(dracoLoader);
+const gltfLoader = new GLTFLoader()
 
 // 감자
 const player = new Player({
 	scene,
 	meshes,
 	gltfLoader,
+	// scaleX: 0.1,
+	// scaleY: 0.1, 
+	// scaleZ: 0.1, 
 	modelSrc: './models/Gamza_Cycle01.glb',
 	x: -20,
 	z: -10,
 });
-
 
 
 // 감자 발자국
@@ -273,8 +266,6 @@ function fadeOutFootprints() {
     }
 }
 
-
-
 // 감자 머리 감정풍선
 let emotion;
 
@@ -355,7 +346,6 @@ function stopTalkBubbles() {
     clearInterval(talkBubbleInterval);
     talkPlanes.forEach(talk => talk.visible = false);
 }
-
 
 
 // 강의실 스팟 메쉬
@@ -451,8 +441,8 @@ const arrow = new THREE.Mesh(arrowPlaneGeometry, arrowMaterial);
 
 
 const arrowPositions = [
-	{ x: 49, y: 12, z: 16, rotationX: -10, rotationY: 8 }, // 기본값 포함
-	{ x: 55, y: 6, z: 17.5, rotationX: -10, rotationY: 8 },
+	{ x: 49, y: 12, z: 16, rotationX: -10, rotationY: 8 ,  }, // 기본값 포함
+	{ x: 55, y: 6, z: 17.5, rotationX: -10, rotationY: 8 ,  },
   ];
   
   const arrows = arrowPositions.map(pos => {
@@ -495,9 +485,6 @@ const arrowPositions = [
   arrows.forEach(arrow => {
 	arrow.originalY = arrow.position.y ;
   });
-  
-	  
-
 
 // 강의실
 const classroom = new Model({
@@ -507,6 +494,9 @@ const classroom = new Model({
 	x: 39,  
 	y: -10.3,
 	z: 23, 
+	// scaleX: 0.1,
+	// scaleY: 0.1, 
+	// scaleZ: 0.1, 
 	rotationY: THREE.MathUtils.degToRad(90),
 	onLoad: (modelMesh) => {
         // 모델 로딩 완료 후 0.5초 지연 후 애니메이션 실행
@@ -519,40 +509,48 @@ const classroom = new Model({
 });
 
 
-const gamzaModels = []
-
+let gamzaMeshes = []
 
 // 강의실 감자
-
-
-// 가만히 떠는 감자
 const classroomgamza = new ClassroomGamza({
 	scene,
 	meshes,
 	gltfLoader,
-	modelSrc: './models/Gamza_Shiver02.glb',  
+	modelSrc: './models/Gamza_Classroom.glb',  
 	x: 55,
 	y: 5,
 	z: 17.5,
+	// scaleX: 0.1,
+	// scaleY: 0.1, 
+	// scaleZ: 0.1, 
 	rotationY: THREE.MathUtils.degToRad(180),
 	onLoad: (modelMesh) => {
         // 모델 로딩 완료 후 0.5초 지연 후 애니메이션 실행
-			gsap.to(modelMesh.position, {
-				duration: 1,
-				x: 55,
-				y: 0.3,
-				z: 17.5,
-				ease: 'Bounce.easeOut',
-			});
-    },
+		gsap.to(modelMesh.position, {
+			duration: 1,
+			x: 55,
+			y: 0.3,
+			z: 17.5,
+			ease: 'Bounce.easeOut',
+		});
+
+		// modelMesh에 name 설정하여 raycaster가 인식할 수 있도록
+		modelMesh.name = 'classroomgamza';
+		gamzaMeshes.push(modelMesh)
+	},
 });
 
+
+
+
 // 양파교수
-// 가만히 있는 교수
 const onion = new Onion({
 	scene,
 	meshes,
 	gltfLoader,
+	// scaleX: 0.1,
+	// scaleY: 0.1, 
+	// scaleZ: 0.1, 
 	modelSrc: './models/s4_onion.glb',
 	// rotationY: Math.PI/2,
 	x: 40.5,
@@ -560,7 +558,6 @@ const onion = new Onion({
 	z: 19,
 	rotationY: THREE.MathUtils.degToRad(65),
 	onLoad: (modelMesh) => {
-        // 모델 로딩 완료 후 0.5초 지연 후 애니메이션 실행
 			gsap.to(modelMesh.position, {
 				duration: 1,
 				x: 40.5,
@@ -581,12 +578,10 @@ const classmate1 = new Classmate({
 	y: 9,
 	z: 24,
 	rotationY: THREE.MathUtils.degToRad(90),
-	scaleX: 0.8,
-	scaleY: 0.8,
-	scaleZ: 0.8,
+	// scaleX: 0.1,
+	// scaleY: 0.1, 
+	// scaleZ: 0.1, 
 	onLoad: (modelMesh) => {
-        // 모델 로딩 완료 후 0.5초 지연 후 애니메이션 실행
-        
 			gsap.to(modelMesh.position, {
 				duration: 1,
 				y: 2.86,
@@ -603,18 +598,15 @@ const classmate2 = new Classmate({
 	y: 9,
 	z: 24.5,   
 	rotationY: THREE.MathUtils.degToRad(90),
-	// scaleX: 4,
-	// scaleY: 4,
-	// scaleX: 4,
+	// scaleX: 0.1,
+	// scaleY: 0.1, 
+	// scaleZ: 0.1, 
 	onLoad: (modelMesh) => {
-        // 모델 로딩 완료 후 0.5초 지연 후 애니메이션 실행
-        
 			gsap.to(modelMesh.position, {
 				duration: 1,
 				y: 1,
 				ease: 'Bounce.easeOut',
 			});
-
     },
 });
 const classmate3 = new Classmate({
@@ -625,12 +617,10 @@ const classmate3 = new Classmate({
 	y: 9,
 	z: 24.5,
 	rotationY: THREE.MathUtils.degToRad(90),
-	// scaleX: 4,
-	// scaleY: 4,
-	// scaleX: 4,
+	// scaleX: 0.1,
+	// scaleY: 0.1, 
+	// scaleZ: 0.1, 
 	onLoad: (modelMesh) => {
-        // 모델 로딩 완료 후 0.5초 지연 후 애니메이션 실행
-      
 			gsap.to(modelMesh.position, {
 				duration: 1,
 				y: 2.86,
@@ -647,9 +637,9 @@ const classmate4 = new Classmate({
 	y: 5,
 	z: 32.5,
 	rotationY: THREE.MathUtils.degToRad(90),
-	// scaleX: 4,
-	// scaleY: 4,
-	// scaleX: 4,
+	// scaleX: 0.1,
+	// scaleY: 0.1, 
+	// scaleZ: 0.1, 
 	onLoad: (modelMesh) => {
         // 모델 로딩 완료 후 0.5초 지연 후 애니메이션 실행
 
@@ -669,9 +659,9 @@ const classmate5 = new Classmate({
 	y: 9,
 	z: 32,
 	rotationY: THREE.MathUtils.degToRad(90),
-	// scaleX: 4,
-	// scaleY: 4,
-	// scaleX: 4,
+	// scaleX: 0.1,
+	// scaleY: 0.1, 
+	// scaleZ: 0.1, 
 	onLoad: (modelMesh) => {
         // 모델 로딩 완료 후 0.5초 지연 후 애니메이션 실행
 
@@ -692,9 +682,9 @@ const classmate6 = new Classmate({
 	y: 5,
 	z: 32.8,
 	rotationY: THREE.MathUtils.degToRad(90),
-	// scaleX: 4,
-	// scaleY: 4,
-	// scaleX: 4,
+	// scaleX: 0.1,
+	// scaleY: 0.1, 
+	// scaleZ: 0.1, 
 	onLoad: (modelMesh) => {
         // 모델 로딩 완료 후 0.5초 지연 후 애니메이션 실행
         gsap.delayedCall(1, () => {
@@ -800,8 +790,63 @@ function handleClassroomInteraction() {
 				console.error("Error loading models:", error);
 			});
 
+
+            // ✅ 강의실 인터랙션이 끝났다면 반드시 restorePlayerAfterPresentation() 실행
+            if (presentationFinished) {
+                console.log("🔥 강의실 인터랙션이 종료됨! 플레이어 복원 실행");
+                restorePlayerAfterPresentation();
+            }
+
     }
   }
+}
+
+function restorePlayerAfterPresentation() {
+    if (presentationFinished) {
+        console.log("✅ 강의실 인터랙션 종료! 플레이어 다시 등장 로직 실행");
+
+        // 카메라 각도 변환
+        gsap.to(camera.position, {
+            duration: 1,
+            y: 5
+        });
+
+		setTimeout(()=>{
+			// ✅ 플레이어 다시 등장
+			gsap.to(player.modelMesh.scale, {
+				duration: 0.4,
+				x: 1,
+				y: 1,
+				z: 1,
+				ease: 'expo.easeOut',
+				onComplete: () => console.log("✅ 플레이어 스케일 복원 완료")
+			});
+
+			player.modelMesh.position.set(50, 0.3, 40);
+		
+			console.log("✅ 플레이어 위치 설정:", player.modelMesh.position);
+
+
+				// ✅ 강제 이동 방지를 위해 destinationPoint 초기화
+				destinationPoint.x = 54;
+				destinationPoint.z = 59;
+				console.log(destinationPoint.x , destinationPoint.z)
+
+			// ✅ 이동을 즉시 시작하지 않도록 설정
+			player.moving = true;
+			player.modelMesh.lookAt(destinationPoint); 
+			player.modelMesh.rotation.y += Math.PI; // 180도 회전 추가 (필요하면 조정)
+			camera.lookAt(player.modelMesh.position);
+			
+			
+		}, 3000)
+
+		setTimeout(()=>{
+		// ✅ 마우스 이벤트 다시 활성화
+		enableMouseEvents();
+		console.log("✅ 마우스 이벤트 활성화 완료");
+		}, 1000)
+    }
 }
 
 
@@ -812,6 +857,7 @@ let startDestinationPoint = new THREE.Vector3();
 let angle = 0;
 let isPressed = false; // 마우스를 누르고 있는 상태
 let started = false;
+
 
 
 // 그리기
@@ -900,12 +946,12 @@ function draw() {
 			) {
 				player.moving = false;
 			}
-			// console.log(destinationPoint.x , destinationPoint.z)
+			console.log(destinationPoint.x , destinationPoint.z)
 
 			// 강의실 인터랙션
 			handleClassroomInteraction()
 		
-			
+
 		} else {
 			player.moving = false;
 			// 서 있는 상태
@@ -947,7 +993,7 @@ function startRun() {
 	startDestinationPoint.x = 1;  // destinationPoint 목표 지점
 	startDestinationPoint.y = 0.3; // 위아래로는 움직이지 않기때문에 고정값
 	startDestinationPoint.z = 1;
-
+if (player.modelMesh) {
 	if (player.moving) {
 		player.modelMesh.lookAt(destinationPoint);
 	}
@@ -957,7 +1003,12 @@ function startRun() {
 		player.modelMesh.lookAt(camera)
 	}
 	player.modelMesh.rotation.y += Math.PI; // 180도 회전 추가 (필요하면 조정)
+
+}else {
+    console.error('player.modelMesh is undefined');
+  }
 }
+
 
 // 좌표 얻어내는 함수
 function checkIntersects() {
@@ -977,12 +1028,70 @@ function checkIntersects() {
 
 			pointerMesh.position.x = destinationPoint.x;
 			pointerMesh.position.z = destinationPoint.z;
-
-			// console.log(destinationPoint.x, destinationPoint.z)
 		}
 		break;
 	}
+}
 
+const gamzaRaycaster = new THREE.Raycaster();
+let gamzaMouse = new THREE.Vector2();
+let presentationFinished = false
+
+function checkGamzaIntersects() {
+
+	if (presentationFinished) {
+        return;
+    }
+
+	   // ✅ Object3D 내부에서 Mesh를 찾아 gamzaMeshes 변환
+	   gamzaMeshes = gamzaMeshes.flatMap(object3D => {
+        let meshes = [];
+        object3D.traverse(child => {
+            if (child.isMesh) {
+                meshes.push(child);
+            }
+        });
+        return meshes;
+    });
+
+	const intersects2 = gamzaRaycaster.intersectObjects(gamzaMeshes);
+
+	if (intersects2.length > 0) {
+
+		hideAllArrows()
+
+		classroomgamza.actions[0].stop()
+		classroomgamza.actions[1].play()
+		classroomgamza.actions[4].play()
+
+		setTimeout(()=>{
+			
+			presentationFinished = true
+
+			// ✅ 강의실 인터랙션 종료 후 플레이어 다시 등장
+			restorePlayerAfterPresentation();
+		}, 3000)
+
+    }
+}
+
+// 모델이 모두 로드된 후에만 클릭 이벤트 추가
+function enableGamzaClickDetection() {
+    canvas.addEventListener('click', (e) => {
+        calculateGamzaMousePosition(e);
+        gamzaRaycasting();
+    });
+}
+
+
+function calculateGamzaMousePosition(e) {
+    gamzaMouse.x = e.clientX / canvas.clientWidth * 2 - 1;
+    gamzaMouse.y = -(e.clientY / canvas.clientHeight * 2 - 1);
+}
+
+function gamzaRaycasting() {
+    gamzaRaycaster.setFromCamera(gamzaMouse, camera);
+    checkGamzaIntersects();
 }
 
 
@@ -1000,24 +1109,31 @@ function setSize() {
 // 이벤트
 window.addEventListener('resize', setSize);
 
-
-
 // 마우스 좌표를 three.js에 맞게 변환 
 function calculateMousePosition(e) {
 	mouse.x = e.clientX / canvas.clientWidth * 2 - 1;
 	mouse.y = -(e.clientY / canvas.clientHeight * 2 - 1);
 }
 
+
+
 // ppt 넘기기
 let slidesEnabled = false; // 슬라이드 활성화 플래그
 let currentSlideIndex = -1;
 let slideInterval;
 
+let isSlideInteractionEnabled = false; // 플래그 변수
+
 function enableSlideInteractions() {
-  slidesEnabled = true;
-  canvas.addEventListener('click', startSlideShow, { once: true });
-  animateTalkBubbles();
+    if (isSlideInteractionEnabled) return; // 이미 실행되었으면 종료
+
+    slidesEnabled = true;
+    isSlideInteractionEnabled = true; // 실행됨을 표시
+
+    canvas.addEventListener('click', startSlideShow, { once: true });
+    animateTalkBubbles();
 }
+
 
 
 // 중복 방지를 위해 배열 길이 확인 후 실행
@@ -1044,10 +1160,11 @@ function startSlideShow() {
             slidesEnabled = false;
 			stopTalkBubbles()
             showArrowAt(1); // 첫 번째 화살표 숨기고 두 번째 화살표 표시
+			enableGamzaClickDetection()
             return;
         }
         showSlide(currentSlideIndex);
-    }, 3000); // 3초마다 슬라이드 전환
+    }, 2000); // 3초마다 슬라이드 전환
 }
 
 function showSlide(index) {
@@ -1138,6 +1255,3 @@ function enableMouseEvents() {
 }
 
 draw();
-
-
-
