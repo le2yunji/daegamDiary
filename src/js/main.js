@@ -365,11 +365,11 @@ scene.add(classroomSpotMesh);
 
 // 강의실 스팟 메쉬
 const classroomSpotMesh2 = new THREE.Mesh(
-	new THREE.PlaneGeometry(10, 10),
+	new THREE.PlaneGeometry(16, 16),
 	new THREE.MeshStandardMaterial({
 		color: 'yellow',
 		transparent: true,
-		opacity: 0.5
+		opacity: 0
 	})
 );
 classroomSpotMesh2.position.set(50, 0.005, 20);
@@ -515,8 +515,9 @@ const classroom = new Model({
 	scaleY: 1, 
 	scaleZ: 0.88,
 	rotationY: THREE.MathUtils.degToRad(90),
-	visible: false
+	visible: false,
 });
+console.log(classroom)
 
 let gamzaMeshes = []
 
@@ -549,22 +550,24 @@ const onion = new Onion({
 	// scaleZ: 0.1, 
 	modelSrc: './models/s4_onion.glb',
 	// rotationY: Math.PI/2,
+	
 	x: 40.5,
 	y: 5,
 	z: 19,
 	rotationY: THREE.MathUtils.degToRad(65),
 	visible: false,
-
 });
+
+[onion, classroom, classroomgamza].forEach(model => model.visible = false)
 
 // 학생 모델 정보를 배열로 저장 
 const classmateData = [
-    { modelSrc: './models/s4_classmate1.glb', x: 43, y: 9, z: 25, rotationY: 90, visible: false },
-    { modelSrc: './models/s4_classmate1.glb', x: 49, y: 9, z: 25, rotationY: 90, visible: false},
-    { modelSrc: './models/s4_classmate1.glb', x: 55, y: 9, z: 25, rotationY: 90, visible: false },
-    { modelSrc: './models/s4_classmate1.glb', x: 43, y: 5, z: 31, rotationY: 90, visible: false },
-    { modelSrc: './models/s4_classmate1.glb', x: 49, y: 9, z: 31, rotationY: 90, visible: false },
-    { modelSrc: './models/s4_classmate1.glb', x: 55, y: 5, z: 31, rotationY: 90, visible: false }
+    { modelSrc: './models/s4_classmate1.glb', x: 43, y: 9, z: 21, rotationY: 90, visible: false },
+    { modelSrc: './models/s4_classmate1.glb', x: 49, y: 9, z: 21, rotationY: 90, visible: false},
+    { modelSrc: './models/s4_classmate1.glb', x: 55, y: 9, z: 21, rotationY: 90, visible: false },
+    { modelSrc: './models/s4_classmate1.glb', x: 43, y: 5, z: 27, rotationY: 90, visible: false },
+    { modelSrc: './models/s4_classmate1.glb', x: 49, y: 9, z: 27, rotationY: 90, visible: false },
+    { modelSrc: './models/s4_classmate1.glb', x: 55, y: 5, z: 27, rotationY: 90, visible: false }
 ];
 
 // 학생 감자들
@@ -579,48 +582,41 @@ classmateData.forEach((data, index) => {
         y: data.y,
         z: data.z,
         rotationY: THREE.MathUtils.degToRad(data.rotationY),
+		visible: false,
     });
     classmates.push(classmate); // 배열에 저장
 });
 
 
-function moveClassroom(){
-	if (classroom && classroom.modelMesh) {
-	classroom.modelMesh.visible = true;
-
-	gsap.to(classroom.modelMesh.position, {
-		y: 3.7,
-		duration: 0.5,
-		ease: "Bounce.easeOut"
-	});
-
-	} else {
-		console.warn(`⚠️ 강의실 이동 실패: 아직 로드되지 않음.`);
-	}
+function moveClassroom(newY, duration = 0.3) {
+    if (classroom.loaded && classroom.modelMesh) {
+		classroom.modelMesh.visible = true
+        gsap.to(classroom.modelMesh.position, {
+            y: newY,
+            duration,   
+            ease: "power2.out"
+        });
+    } else {
+        console.warn(`⚠️ 강의실 이동 실패: 아직 로드되지 않음.`, classroom);
+    }
 }
 
 
-function moveOnion(){
-	if (onion && onion.modelMesh) {
-		onion.modelMesh.visible = true;
-
-	gsap.to(onion.modelMesh.position, {
-		duration: 1,
-		x: 40.5,
-		y: 0.8,
-		z: 19,
-		ease: "Bounce.easeOut"
-	});
-
-	} else {
-		console.warn(`⚠️ 양파 이동 실패: 아직 로드되지 않음.`);
+function moveOnion(newY, duration = 0.5) {
+	if (onion.loaded && onion.modelMesh) {
+		onion.modelMesh.visible = true
+        gsap.to(onion.modelMesh.position, {
+            y: newY,
+			duration,
+            ease: "power2.out"
+        });
 	}
 }
+
 
 function moveClassroomgamza(){
 	if (classroomgamza && classroomgamza.modelMesh) {
-		classroomgamza.modelMesh.visible = true;
-
+		classroomgamza.modelMesh.visible = true
 	gsap.to(classroomgamza.modelMesh.position, {
 		duration: 1,
 		x: 55,
@@ -628,7 +624,6 @@ function moveClassroomgamza(){
 		z: 17.5,
 		ease: 'Bounce.easeOut',
 	});
-
 	} else {
 		console.warn(`⚠️ 강의실 감자 이동 실패: 아직 로드되지 않음.`);
 	}
@@ -653,40 +648,36 @@ let classroomLoaded = false; // ✅ 모델 로드 중복 방지
 let classroomEntered = false; // ✅ 애니메이션 실행 중복 방지
 
 
-
-// 강의실 인터랙션
+// 🧑‍🏫 강의실 인터랙션 🧑‍🏫
 function handleClassroomInteraction() {
-
+    // 플레이어가 강의실 근처에 접근했는지 확인
 	if (
-		Math.abs(classroomSpotMesh2.position.x - player.modelMesh.position.x) < 5 &&
-		Math.abs(classroomSpotMesh2.position.z - player.modelMesh.position.z) < 5
+		Math.abs(classroomSpotMesh2.position.x - player.modelMesh.position.x) < 8 &&
+		Math.abs(classroomSpotMesh2.position.z - player.modelMesh.position.z) < 8
 	  ) {
-		if (!classroomLoaded) { // ✅ 모델이 한 번만 로드되도록 방지
+		if (!classroomLoaded) { 
             console.log("🚀 [Main Thread] 모델 로드 시작");
+
+            // 모든 클래스메이트 모델 로드
             classmates.forEach(classmate => classmate.loadModel());
+		
+			const modelsToLoad = [classroom, classroomgamza, onion];
 
-			const modelsToLoad = [ classroom, onion, classroomgamza ];
-			// 모델이 로드되지 않은 경우에만 loadModel() 호출
-			const loadPromises = modelsToLoad.map(model => {
-				if (!model.loaded && !model.loading) {
-					return model.loadModel(); // 모델 로딩을 시작하고, Promise 반환
-				}
-				return Promise.resolve(); // 이미 로드된 모델은 그대로 넘어감
+			// ✅ 모든 모델이 로드될 때까지 기다림
+			Promise.all(modelsToLoad.map(model => model.loadModel()))
+			.then(() => {
+				console.log("✅ [Main Thread] 모든 모델이 로드됨!", classroom,classroomgamza, onion);
+				console.log("✅ [Main Thread] 모든 모델이 숨겨짐!");
+			})
+			.catch(error => {
+				console.error("❌ [Main Thread] 모델 로딩 중 오류 발생:", error);
 			});
-
-			// 모든 모델이 로드된 후에 슬라이드 인터랙션을 활성화
-			Promise.all(loadPromises)
-				.then(() => {
-						enableSlideInteractions(); // 모든 모델 로드 후 실행
-				})
-				.catch(error => {
-					console.error("Error loading models:", error);
-				});
-	
-            classroomLoaded = true;
+            classroomLoaded = true; // ✅ 중복 로딩 방지
         }
-	  }
+	}
 
+
+    // 플레이어가 강의실 입구에 도착했을 때 실행
     if (
       Math.abs(classroomSpotMesh.position.x - player.modelMesh.position.x) < 1.5 &&
       Math.abs(classroomSpotMesh.position.z - player.modelMesh.position.z) < 1.5
@@ -699,57 +690,58 @@ function handleClassroomInteraction() {
   
         // player 사라짐
         gsap.to(player.modelMesh.scale, {
-          duration: 0.03,
+          duration: 0.1,
           x: 0,
           y: 0,
           z: 0,
           ease: 'none'
         });
+		// 카메라 각도 변환
+		gsap.to(camera.position, {
+			duration: 0.5,
+			y: 3
+		});
 
-		setTimeout(() => {
-			// 카메라 각도 변환
-			gsap.to(camera.position, {
-				duration: 1,
-				y: 3
-			});
-		}, 1000)
   
         classroomSpotMesh.visible = false;
         isPressed = false;
   
         disableMouseEvents();
 
-		setTimeout(() => {
-			if (!classroomEntered) { // ✅ 애니메이션 중복 실행 방지
-				classroomSpotMesh.material.color.set('seagreen');
-	
-				moveClassmate(0, 1);
-				moveClassmate(1, 1);
-				moveClassmate(2, 1);
-				moveClassmate(3, 1.5);
-				moveClassmate(4, 1);
-				moveClassmate(5, 1.5);
-	
-				moveClassroom()
-				moveOnion()
-				moveClassroomgamza()
-				scene.add(classroomLight, classroomSunLight);
+		if (!classroomEntered) { // ✅ 애니메이션 중복 실행 방지
+				setTimeout(() => {
+						moveClassroom(3.7)
+				}, 500);
+				setTimeout(() => {
+					moveClassmate(0, 1);
+					moveClassmate(1, 1);
+					moveClassmate(2, 1);
+					moveClassmate(3, 1.5);
+					moveClassmate(4, 1);
+					moveClassmate(5, 1.5);
+				}, 800);
+				setTimeout(() => {
+						moveOnion(0.8);
+						moveClassroomgamza();
+				}, 1000);
+				setTimeout(() => {
+						scene.add(classroomLight, classroomSunLight);
+						showArrowAt(0); // 첫 번째 화살표 보이기
+						enableSlideInteractions(); // 모든 모델 로드 후 실행
+				}, 1500);
 
-				showArrowAt(0); // 첫 번째 화살표 보이기
 				classroomEntered = true;
 			}
-		}, 2500)
 
-            // ✅ 강의실 인터랙션이 끝났다면 반드시 restorePlayerAfterPresentation() 실행
+            // ✅ 강의실 인터랙션이 끝났다면 플레이어 복원
             if (presentationFinished) {
                 console.log("🔥 강의실 인터랙션이 종료됨! 플레이어 복원 실행");
-
                 restorePlayerAfterPresentation();
             }
-
     }
   }
 }
+
 
 function restorePlayerAfterPresentation() {
     if (presentationFinished) {
