@@ -1,94 +1,128 @@
-import {
-	AnimationMixer
-} from 'three';
+import * as THREE from 'three';
+import { AnimationMixer } from 'three';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
 export class Onion {
 	constructor(info) {
-		this.info = info; // info 객체를 클래스 인스턴스 변수로 저장
-
+		this.info = info;
+		this.scene = info.scene;
+		this.modelSrc = info.modelSrc;
 		this.x = info.x;
 		this.y = info.y;
 		this.z = info.z;
-
 		this.rotationX = info.rotationX || 0;
 		this.rotationY = info.rotationY || 0;
 		this.rotationZ = info.rotationZ || 0;
+		this.scaleX = info.scaleX || 1;
+		this.scaleY = info.scaleY || 1;
+		this.scaleZ = info.scaleZ || 1;
+		this.modelMesh = null;
+		this.loaded = false;
+		this.mixer = null;
+		this.actions = [];
+		this.visible = false
 
-		// this.scaleX = info.scaleX || 1;
-		// this.scaleY = info.scaleY || 1;
-		// this.scaleZ = info.scaleZ || 1;
+		this.loader = new GLTFLoader();
 
-		this.scene = info.scene; // 씬을 저장
-		this.gltfLoader = info.gltfLoader; // GLTFLoader를 저장
-		this.modelSrc = info.modelSrc; // 모델 경로 저장
-
-		this.modelMesh = null; // 모델 객체
-		this.loaded = false; // 로드 상태 플래그
+		// ✅ Web Worker 사용
+		this.worker = new Worker(new URL('./gltfWorkerTextured.js', import.meta.url), { type: 'module' });
+		this.worker.onmessage = this.onWorkerMessage.bind(this);
 	}
 
-	// 모델 로드 메서드
+	// ✅ Web Worker를 통한 모델 로드
 	loadModel() {
-		// 이미 로드된 경우 로드하지 않음
-		if (this.loaded) return;
+		if (this.loaded) {
+			this.showModel();
+			return;
+		}
 
-		// GLTFLoader 로드
-		this.gltfLoader.load(
-			this.modelSrc, // 모델 경로
-			(glb) => {
-				glb.scene.traverse((child) => {
-					if (child.isMesh) {
-						child.castShadow = true;
+		// console.log(`📤 [Main Thread] 모델 로드 요청: ${this.modelSrc}`);
+		this.worker.postMessage({ modelSrc: this.modelSrc });
+	}
+
+	// ✅ Web Worker에서 데이터를 수신하여 씬에 추가
+	onWorkerMessage(event) {
+		// console.log(`📥 [Main Thread] Web Worker 메시지 수신:`, event.data);
+	
+		let { model, buffers, images, error } = event.data;
+		if (error) {
+			console.error(`❌ [Main Thread] 모델 로드 실패: ${this.modelSrc}`, error);
+			return;
+		}
+	
+		if (!buffers || buffers.length === 0) {
+			console.error("❌ [Main Thread] Web Worker에서 받은 buffers가 없습니다!");
+			return;
+		}
+	
+		// ✅ ArrayBuffer → Blob 변환 후 URL 생성
+		const blob = new Blob([buffers[0]], { type: "application/octet-stream" });
+		const url = URL.createObjectURL(blob);
+	
+		// ✅ JSON에서 `buffers[0].uri`를 Blob URL로 변경
+		if (model.buffers && model.buffers.length > 0) {
+			model.buffers[0].uri = url; // ✅ Web Worker에서 받은 버퍼를 URL로 연결
+		}
+	
+		console.log("✅ 수정된 GLTF 모델 데이터:", model);
+	
+		// ✅ `GLTFLoader.parse()`를 사용하여 GLTF 복원
+		this.loader.parse(
+			JSON.stringify(model),
+			'',
+			(gltf) => {
+				// console.log("✅ GLTF 파싱 성공:", gltf);
+				this.modelMesh = gltf.scene;
+				this.modelMesh.position.set(this.x, this.y, this.z);
+				this.modelMesh.rotation.set(this.rotationX, this.rotationY, this.rotationZ);
+				this.modelMesh.scale.set(this.scaleX, this.scaleY, this.scaleZ);
+				this.modelMesh.name = "onion";
+				this.modelMesh.castShadow = true;
+				this.modelMesh.visible = false
+
+				this.scene.add(this.modelMesh);
+				this.loaded = true;
+	
+				// ✅ Web Worker에서 전송된 `ImageBitmap`을 텍스처로 적용
+				let imageIndex = 0;
+				this.modelMesh.traverse(async (child) => {
+					if (child.isMesh && child.material?.map && images.length > 0) {
+						const imageBitmap = await createImageBitmap(images[imageIndex]);
+						const texture = new THREE.Texture(imageBitmap);
+						
+						// ✅ 색공간을 sRGB로 설정하여 원래 색감 유지
+						texture.colorSpace = THREE.SRGBColorSpace;
+					
+						texture.needsUpdate = true;
+						child.material.map = texture;
+						imageIndex++;
 					}
 				});
-
-				this.modelMesh = glb.scene.children[0]; // 모델 메시
-				this.modelMesh.castShadow = true;
-
-				// 위치 설정
-				this.modelMesh.position.set(this.x, this.y, this.z);
-
-				// 회전 설정
-				this.modelMesh.rotation.set(this.rotationX, this.rotationY, this.rotationZ);
-
-				// 스케일 설정
-				// this.modelMesh.scale.set(this.scaleX, this.scaleY, this.scaleZ);
-
-                this.modelMesh.name = 'onion';
-
-				// 씬에 추가
-				this.scene.add(this.modelMesh);
-
-                this.actions = [];
-                if (glb.animations && glb.animations.length > 0) {
-                    this.mixer = new AnimationMixer(this.modelMesh);
-                    glb.animations.forEach((clip, index) => {
-                        this.actions[index] = this.mixer.clipAction(clip);
-                    });
-                    // this.actions[0].play();
-                    this.actions[0].play()
-                    console.log(this.actions)
-                    // this.actions[0].repetitions = 1;
-                } else {
-                    console.warn('No animations found in the GLTF file.');
-                }
-
-
-				// 로드 완료 후 콜백 실행
-				if (this.info.onLoad) {
-					this.info.onLoad(this.modelMesh); // 모델 로드 후 실행되는 콜백
+	
+				// ✅ 애니메이션 처리
+				if (gltf.animations && gltf.animations.length > 0) {
+					this.mixer = new AnimationMixer(this.modelMesh);
+					gltf.animations.forEach((clip, index) => {
+						this.actions[index] = this.mixer.clipAction(clip);
+					});
+					this.actions[0].play();
+				} else {
+					console.warn('No animations found in the GLTF file.');
 				}
-
-				this.loaded = true; // 로드 완료 플래그
-				// console.log('Model loaded!');
+	
+				// ✅ 로드 완료 후 콜백 실행
+				if (this.info.onLoad) {
+					this.info.onLoad(this.modelMesh);
+				}
+	
+				// console.log("🧅 Onion 모델이 로드되었습니다.");
+	
+				// ✅ URL 해제 (메모리 관리)
+				URL.revokeObjectURL(url);
 			},
-			(xhr) => {
-				// 로드 진행 상태
-				// console.log(`Model loading: ${(xhr.loaded / xhr.total) * 100}% completed`);
-			},
-			(error) => {
-				// 에러 처리
-				// console.error('An error occurred while loading the model:', error);
-			}
+			buffers
 		);
 	}
-}
+	
+	
+}	
