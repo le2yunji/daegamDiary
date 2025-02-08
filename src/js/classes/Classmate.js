@@ -15,13 +15,10 @@ export class Classmate {
 		this.scaleZ = info.scaleZ || 1;
 		this.modelMesh = null;
 		this.loaded = false;
-
 		this.loader = new GLTFLoader();
 
-		// ✅ Web Worker 파일 경로 확인 (절대 경로 사용 가능)
-		this.worker = new Worker(new URL('./gltfWorker.js', import.meta.url), { type: 'module' });
-
-		// ✅ Web Worker 메시지 수신 확인
+		// ✅ Web Worker 사용
+		this.worker = new Worker(new URL('./gltfWorkerBasic.js', import.meta.url), { type: 'module' });
 		this.worker.onmessage = this.onWorkerMessage.bind(this);
 	}
 
@@ -35,28 +32,65 @@ export class Classmate {
 	onWorkerMessage(event) {
 		console.log(`📥 [Main Thread] Web Worker 메시지 수신:`, event.data);
 
-		const { id, model, error } = event.data;
+		const { model, buffers, images, error } = event.data;
 		if (error) {
 			console.error(`❌ [Main Thread] 모델 로드 실패: ${this.modelSrc}`, error);
 			return;
 		}
 
-		// ✅ JSON 데이터를 Three.js Object3D로 변환
-		const loader = new THREE.ObjectLoader();
-		this.modelMesh = loader.parse(model);
-
-		this.modelMesh.position.set(this.x, this.y, this.z);
-		this.modelMesh.rotation.y = this.rotationY;
-		this.modelMesh.scale.set(this.scaleX, this.scaleY, this.scaleZ);
-		this.modelMesh.name = "classmate";
-		this.modelMesh.castShadow = true;
-
-		this.scene.add(this.modelMesh);
-		this.loaded = true;
-
-		// ✅ 모델 로드 후 애니메이션 실행
-		if (this.info.onLoad) {
-			this.info.onLoad(this.modelMesh);
+		if (!buffers || buffers.length === 0) {
+			console.error("❌ [Main Thread] Web Worker에서 받은 buffers가 없습니다!");
+			return;
 		}
+
+		// ✅ ArrayBuffer → Blob 변환 후 URL 생성
+		const blob = new Blob([buffers[0]], { type: "application/octet-stream" });
+		const url = URL.createObjectURL(blob);
+
+		if (model.buffers && model.buffers.length > 0) {
+			model.buffers[0].uri = url; // ✅ Web Worker에서 받은 버퍼를 URL로 연결
+		}
+
+		// ✅ `GLTFLoader.parse()`를 사용하여 GLTF 복원
+		this.loader.parse(
+			JSON.stringify(model),
+			'',
+			(gltf) => {
+				this.modelMesh = gltf.scene;
+				this.modelMesh.position.set(this.x, this.y, this.z);
+				this.modelMesh.rotation.y = this.rotationY;
+				this.modelMesh.scale.set(this.scaleX, this.scaleY, this.scaleZ);
+				this.modelMesh.name = "classmate";
+				this.modelMesh.castShadow = true;
+
+				this.scene.add(this.modelMesh);
+				this.loaded = true;
+
+				// ✅ Web Worker에서 전송된 `ImageBitmap`을 텍스처로 적용
+				let imageIndex = 0;
+				this.modelMesh.traverse(async (child) => {
+					if (child.isMesh && child.material?.map && images.length > 0) {
+						const imageBitmap = await createImageBitmap(images[imageIndex]);
+						const texture = new THREE.Texture(imageBitmap);
+						texture.colorSpace = THREE.SRGBColorSpace;
+						texture.needsUpdate = true;
+						child.material.map = texture;
+						imageIndex++;
+					}
+				});
+
+				// ✅ 모델 로드 후 애니메이션 실행
+				if (this.info.onLoad) {
+					this.info.onLoad(this.modelMesh);
+				}
+
+				// ✅ 메모리 정리
+				setTimeout(() => {
+					console.log("🧹 Blob URL 정리:", url);
+					URL.revokeObjectURL(url);
+				}, 5000);
+			},
+			buffers
+		);
 	}
 }
