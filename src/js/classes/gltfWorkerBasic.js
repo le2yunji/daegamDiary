@@ -14,7 +14,6 @@ self.onmessage = async function (event) {
             const jsonData = gltf.parser.json;
             const buffers = [];
 
-            // ✅ 버퍼 데이터 올바르게 추출
             try {
                 const bufferCount = jsonData.buffers?.length || 0;
                 for (let i = 0; i < bufferCount; i++) {
@@ -22,25 +21,33 @@ self.onmessage = async function (event) {
                     buffers.push(buffer);
                 }
             } catch (error) {
+                console.error("❌ [Web Worker] 버퍼 데이터 로드 실패:", error);
                 self.postMessage({ error });
                 return;
             }
 
             let images = [];
-
-            // ✅ 텍스처 데이터 추출 (에러 방지)
-            gltf.scene.traverse((child) => {
-                if (child.isMesh && child.material?.map?.source?.data) {
-                    images.push(child.material.map.source.data);
+            if (jsonData.images && jsonData.images.length > 0) {
+                try {
+                    for (let i = 0; i < jsonData.images.length; i++) {
+                        const imageBuffer = await gltf.parser.getDependency('image', i);
+                        const mimeType = jsonData.images[i].mimeType || 'image/png';
+                        const blob = new Blob([imageBuffer], { type: mimeType });
+                        images.push(blob);
+                    }
+                } catch (error) {
+                    console.error("❌ [Web Worker] 이미지 데이터 로드 실패:", error);
                 }
-            });
+            } else {
+                console.warn("⚠️ [Web Worker] 이미지가 없는 모델입니다.");
+            }
 
-            // ✅ `buffers` 및 `images`를 함께 전송 (한 번만 실행)
+            console.log("✅ Web Worker: 모델 데이터 전송 완료");
             self.postMessage({ model: jsonData, buffers, images }, buffers);
         },
         undefined,
         (error) => {
-            console.error(`❌ [Web Worker] 모델 로드 실패: ${modelSrc}`, error);
+            console.error(`❌ [Web Worker] 모델 로드 실패 - ${modelSrc}`, error);
             self.postMessage({ error });
         }
     );
