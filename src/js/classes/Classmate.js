@@ -50,6 +50,7 @@ export class Classmate {
 		if (model.buffers && model.buffers.length > 0) {
 			model.buffers[0].uri = url; // ✅ Web Worker에서 받은 버퍼를 URL로 연결
 		}
+		THREE.Cache.enabled = false;  // ✅ 캐시 비활성화
 
 		// ✅ `GLTFLoader.parse()`를 사용하여 GLTF 복원
 		this.loader.parse(
@@ -62,6 +63,7 @@ export class Classmate {
 				this.modelMesh.scale.set(this.scaleX, this.scaleY, this.scaleZ);
 				this.modelMesh.name = "classmate";
 				this.modelMesh.castShadow = true;
+				this.modelMesh.visible = false
 
 				this.scene.add(this.modelMesh);
 				this.loaded = true;
@@ -89,6 +91,8 @@ export class Classmate {
 					console.log("🧹 Blob URL 정리:", url);
 					URL.revokeObjectURL(url);
 				}, 5000);
+				THREE.Cache.clear();  // ✅ 명시적으로 캐시 정리
+
 			},
 			buffers
 		);
