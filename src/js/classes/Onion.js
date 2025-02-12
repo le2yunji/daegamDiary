@@ -64,7 +64,8 @@ export class Onion {
 			model.buffers[0].uri = url; // ✅ Web Worker에서 받은 버퍼를 URL로 연결
 		}
 	
-		console.log("✅ 수정된 GLTF 모델 데이터:", model);
+		  // ✅ GLTFLoader.parse()로 모델 복원
+		  THREE.Cache.enabled = false;  // ✅ 캐시 비활성화
 	
 		// ✅ `GLTFLoader.parse()`를 사용하여 GLTF 복원
 		this.loader.parse(
@@ -106,6 +107,7 @@ export class Onion {
 						this.actions[index] = this.mixer.clipAction(clip);
 					});
 					this.actions[0].play();
+					console.log(this.actions)
 				} else {
 					console.warn('No animations found in the GLTF file.');
 				}
@@ -115,10 +117,14 @@ export class Onion {
 					this.info.onLoad(this.modelMesh);
 				}
 	
-				// console.log("🧅 Onion 모델이 로드되었습니다.");
-	
-				// ✅ URL 해제 (메모리 관리)
-				URL.revokeObjectURL(url);
+				console.log("🧅 Onion 모델이 로드되었습니다.");
+
+				setTimeout(() => {
+                    console.log("🧹 Blob URL 정리:", model.buffers[0].uri);
+                    URL.revokeObjectURL(model.buffers[0].uri);
+                }, 5000);  // 5초 후 메모리 해제
+
+                THREE.Cache.clear();  // ✅ 명시적으로 캐시 정리
 			},
 			buffers
 		);
