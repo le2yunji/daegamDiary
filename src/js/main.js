@@ -1002,9 +1002,9 @@ const bam = new Bam({
 	scaleX: 1.5,
 	scaleY: 1.5, 
 	scaleZ: 1.5, 
-	x: 74,
+	x: 73,
 	y: -10,
-	z: 80,
+	z: 76,
 	rotationY: THREE.MathUtils.degToRad(60),
 	// visible: false,
 });
