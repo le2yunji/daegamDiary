@@ -10,6 +10,8 @@ import { GUI } from 'dat.gui'
 import { Model } from './classes/Model';
 import { Bakery } from './classes/Bakery';
 import { BakeryGamza } from './classes/BakeryGamza';
+import { BakeryProps } from './classes/BakeryProps';
+import { Bam } from './classes/Bam';
 import { RectAreaLightHelper } from 'three/examples/jsm/helpers/RectAreaLightHelper'
 
 
@@ -180,7 +182,7 @@ const player = new Player({
 	scaleX: 0.7,
 	scaleY: 0.7, 
 	scaleZ: 0.7, 
-	modelSrc: './models/Gamza_Cycle01.glb',
+	modelSrc: './models/Gamza_cycle.glb',
 	x: -20,
 	z: -10,
 });
@@ -248,7 +250,7 @@ function leaveFootprint() {
         isLeftFoot = !isLeftFoot; // 발 번갈아 사용
 
         // 최대 발자국 개수 유지 (최대 10개)
-        if (footprints.length > 20) {
+        if (footprints.length > 100) {
             const oldestFootprint = footprints.shift();
             scene.remove(oldestFootprint.mesh);
         }
@@ -371,7 +373,7 @@ scene.add(classroomSpotMesh);
 
 // 강의실 스팟 메쉬
 const classroomSpotMesh2 = new THREE.Mesh(
-	new THREE.PlaneGeometry(20, 20),
+	new THREE.PlaneGeometry(40, 40),
 	new THREE.MeshStandardMaterial({
 		color: 'yellow',
 		transparent: true,
@@ -541,8 +543,10 @@ const classroom = new Model({
 	scaleY: 1.5, 
 	scaleZ: 1.5,
 	rotationY: THREE.MathUtils.degToRad(60),
-	visible: false,
+
+	// visible: false,
 });
+
 
 let gamzaMeshes = []
 
@@ -553,13 +557,13 @@ const classroomgamza = new ClassroomGamza({
 	gltfLoader,
 	modelSrc: './models/s4_classroomgamza.glb',  
 	x: 57,
-	y: 10,
+	y: -10,
 	z: 21,
 	scaleX: 0.8,
 	scaleY: 0.8, 
 	scaleZ: 0.8, 
 	rotationY: THREE.MathUtils.degToRad(180),
-	visible: false,
+	// visible: false,
 	onLoad: (modelMesh) => {
 		// modelMesh에 name 설정하여 raycaster가 인식할 수 있도록
 		modelMesh.name = 'classroomgamza';
@@ -579,13 +583,13 @@ const onion = new Onion({
 	modelSrc: './models/s4_onion.glb',
 	// rotationY: Math.PI/2,
 	x: 47,
-	y: 8,
+	y: -8,
 	z: 16,
 	rotationY: THREE.MathUtils.degToRad(45),
-	visible: false,
+	// visible: false,
 });
 
-[onion, classroom, classroomgamza].forEach(model => model.visible = false)
+// [onion, classroom, classroomgamza].forEach(model => model.visible = false)
 
 // // 클래스메이트 정보를 배열로 저장 
 // const classmateData = [
@@ -628,20 +632,20 @@ const classmate = new Classmate({
 	modelSrc: './models/classmate3.glb',
 	// rotationY: Math.PI/2,
 	x: 65, 
-	y: 9, 
+	y: -9, 
 	z: 29.5,
 	rotationY: THREE.MathUtils.degToRad(60),
-	visible: false,
+	// visible: false,
 });
 
 
 // ✅ 강의실 등장 함수
-function moveClassroom(newY, duration = 0.5) {
+function moveClassroom() {
     if (classroom.loaded && classroom.modelMesh) {
-		classroom.modelMesh.visible = true
+		// classroom.modelMesh.visible = true
         gsap.to(classroom.modelMesh.position, {
-            y: newY,
-            duration,   
+            y: 0.05,
+            duration: 0.5,   
             ease: "power2.out"
         });
     } else {
@@ -652,7 +656,7 @@ function moveClassroom(newY, duration = 0.5) {
 // ✅ 양파 등장 함수
 function moveOnion(newY, duration = 1) {
 	if (onion.loaded && onion.modelMesh) {
-		onion.modelMesh.visible = true
+		// onion.modelMesh.visible = true
         gsap.to(onion.modelMesh.position, {
             y: newY,
 			duration,
@@ -664,7 +668,7 @@ function moveOnion(newY, duration = 1) {
 // ✅ 클래스룸 감자 등장 함수
 function moveClassroomgamza(){
 	if (classroomgamza && classroomgamza.modelMesh) {
-		classroomgamza.modelMesh.visible = true
+		// classroomgamza.modelMesh.visible = true
 	gsap.to(classroomgamza.modelMesh.position, {
 		duration: 0.5,
 		x: 56.5,
@@ -693,7 +697,7 @@ function moveClassroomgamza(){
 // }
 function moveClassmate(newY, duration = 1) {
 	if (classmate.loaded && classmate.modelMesh) {
-		classmate.modelMesh.visible = true
+		// classmate.modelMesh.visible = true
         gsap.to(classmate.modelMesh.position, {
             y: newY,
 			duration,
@@ -710,12 +714,12 @@ let classroomEntered = false; // ✅ 애니메이션 실행 중복 방지
 function handleClassroomInteraction() {
     // 플레이어가 강의실 근처에 접근했는지 확인
 	if (
-		Math.abs(classroomSpotMesh2.position.x - player.modelMesh.position.x) < 10 &&
-		Math.abs(classroomSpotMesh2.position.z - player.modelMesh.position.z) < 10
+		Math.abs(classroomSpotMesh2.position.x - player.modelMesh.position.x) < 20 &&
+		Math.abs(classroomSpotMesh2.position.z - player.modelMesh.position.z) < 20
 	  ) {
 		if (!classroomLoaded) { 
-            console.log("🚀 [Main Thread] 모델 로드 시작");
-
+            // console.log("🚀 [Main Thread] 모델 로드 시작");
+		
 			// setTimeout(()=>{
 			// 	// 모든 클래스메이트 모델 로드
 			// 	classmates.forEach(classmate => classmate.loadModel());
@@ -723,14 +727,16 @@ function handleClassroomInteraction() {
 		
 			// 모든 클래스메이트 모델 로드
 			classmate.loadModel()
-	
-         
-			const modelsToLoad = [classroom, classroomgamza, onion];
+		
+			// moveClassroom(0.05)
+
+			const modelsToLoad = [ classroom, classroomgamza, onion];
 			// ✅ 모든 모델이 로드될 때까지 기다림
 			Promise.all(modelsToLoad.map(model => model.loadModel()))
 			.then(() => {
-				console.log("✅ [Main Thread] 모든 모델이 로드됨!", classroom,classroomgamza, onion);
-				console.log("✅ [Main Thread] 모든 모델이 숨겨짐!");
+				// console.log("✅ [Main Thread] 모든 모델이 로드됨!", classroom,classroomgamza, onion);
+				// console.log("✅ [Main Thread] 모든 모델이 숨겨짐!");
+				
 			})
 			.catch(error => {
 				console.error("❌ [Main Thread] 모델 로딩 중 오류 발생:", error);
@@ -768,7 +774,7 @@ function handleClassroomInteraction() {
 			y: 3
 		});
 		}, 100);
-		
+	
 
         classroomSpotMesh.visible = false;
         isPressed = false;
@@ -776,21 +782,21 @@ function handleClassroomInteraction() {
         disableMouseEvents();
 
 		if (!classroomEntered) { // ✅ 애니메이션 중복 실행 방지
-				setTimeout(() => {
-					moveClassroom(0.05)
-				}, 10);
-				setTimeout(() => {
+			moveClassroom()
+				// setTimeout(() => {
+				// }, 10);
+				// setTimeout(() => {
 					moveClassmate(0, 1);
 					// moveClassmate(1, 1);
 					// moveClassmate(2, 1);
 					// moveClassmate(3, 1.5);
 					// moveClassmate(4, 1);
 					// moveClassmate(5, 1.5);
-				}, 20);
-				setTimeout(() => {
+				// }, 20);
+				// setTimeout(() => {
 						moveOnion(0.8);
 						moveClassroomgamza();
-				}, 50);
+				// }, 50);
 				setTimeout(() => {
 						scene.add(classroomLight,  classroomSunLight, classroomLight2);
 						showArrowAt(0); // 첫 번째 화살표 보이기
@@ -859,7 +865,7 @@ function restorePlayerAfterClass() {
 			// ✅ 강제 이동 방지를 위해 destinationPoint 초기화
 			destinationPoint.x = 54;
 			destinationPoint.z = 59;
-			console.log(destinationPoint.x , destinationPoint.z)
+			// console.log(destinationPoint.x , destinationPoint.z)
 
 			// ✅ 이동을 즉시 시작하지 않도록 설정
 			player.moving = true;
@@ -957,25 +963,12 @@ const bakery = new Bakery({
 	scaleX: 1.5,
 	scaleY: 1.5, 
 	scaleZ: 1.5, 
-	modelSrc: './models/Cafe12.glb',
+	modelSrc: './models/CafeScene.glb',
 	x: 74,
 	y: 0,
 	z: 76,
 	rotationY: THREE.MathUtils.degToRad(65)
 });
-// const bakery = new Bakery({
-// 	scene,
-// 	meshes,
-// 	gltfLoader,
-// 	scaleX: 1.5,
-// 	scaleY: 1.5, 
-// 	scaleZ: 1.5, 
-// 	modelSrc: './models/CafeScene.glb',
-// 	x: 78,
-// 	y: 5,
-// 	z: 95,
-// 	rotationY: THREE.MathUtils.degToRad(65)
-// });
 
 
 // 베이커리 감자
@@ -983,15 +976,15 @@ const bakerygamza = new BakeryGamza({
 	scene,
 	meshes,
 	gltfLoader,
-	modelSrc: './models/CafeGamza.glb',  
+	modelSrc: './models/CafeGamza1.glb',  
 	scaleX: 1.5,
 	scaleY: 1.5, 
 	scaleZ: 1.5, 
 	x: 74,
-	y: 0,
+	y: -20,
 	z: 75,
 	rotationY: THREE.MathUtils.degToRad(60),
-	visible: false,
+	// visible: false,
 	onLoad: (modelMesh) => {
 		// modelMesh에 name 설정하여 raycaster가 인식할 수 있도록
 		modelMesh.name = 'bakerygamza';
@@ -1000,135 +993,122 @@ const bakerygamza = new BakeryGamza({
 
 });
 
-console.log(bakerygamza)
+// 베이커리 밤
+const bam = new Bam({
+	scene,
+	meshes,
+	gltfLoader,
+	modelSrc: './models/Bam.glb',  
+	scaleX: 1.5,
+	scaleY: 1.5, 
+	scaleZ: 1.5, 
+	x: 74,
+	y: -10,
+	z: 80,
+	rotationY: THREE.MathUtils.degToRad(60),
+	// visible: false,
+});
 
-// // 베이커리 도넛 L
-// const bakerydonut_L = new BakeryGamza({
-// 	scene,
-// 	meshes,
-// 	gltfLoader,
-// 	modelSrc: './models/DonutL.glb',  
-// 	scaleX: 1.5,
-// 	scaleY: 1.5, 
-// 	scaleZ: 1.5, 
-// 	x: 78,
-// 	y: 5,
-// 	z: 95,
-// 	rotationY: THREE.MathUtils.degToRad(65),
-// 	visible: true,
-// 	onLoad: (modelMesh) => {
-// 		// modelMesh에 name 설정하여 raycaster가 인식할 수 있도록
-// 		modelMesh.name = 'bakerydonut_L';
-// 	},
-// });
-// // 베이커리 도넛 R
-// const bakerydonut_R = new BakeryGamza({
-// 	scene,
-// 	meshes,
-// 	gltfLoader,
-// 	modelSrc: './models/DonutR.glb',  
-// 	scaleX: 1.5,
-// 	scaleY: 1.5, 
-// 	scaleZ: 1.5, 
-// 	x: 78,
-// 	y: 5,
-// 	z: 95,
-// 	rotationY: THREE.MathUtils.degToRad(65),
-// 	visible: true,
-// 	onLoad: (modelMesh) => {
-// 		// modelMesh에 name 설정하여 raycaster가 인식할 수 있도록
-// 		modelMesh.name = 'bakerydonut_R';
-// 	},
-// });
+// 베이커리 오븐, 도넛, 트레이
+const bakeryprops = new BakeryProps({
+	scene,
+	meshes,
+	gltfLoader,
+	modelSrc: './models/DOnuts1.glb',  
+	scaleX: 1.5,
+	scaleY: 1.5, 
+	scaleZ: 1.5, 
+	x: 74,
+	y: -5,
+	z: 76,
+	rotationY: THREE.MathUtils.degToRad(65),
+	// visible: false,
+});
 
-// ✅ 베이커리 등장 함수
-function moveBakery(newY, duration = 0.3) {
-    if (bakery.loaded && bakery.modelMesh) {
-		bakery.modelMesh.visible = true
-        gsap.to(bakery.modelMesh.position, {
-            y: newY,
-            duration,   
-            ease: "power2.out"
-        });
-    } else {
-        console.warn(`⚠️ 베이커리 이동 실패: 아직 로드되지 않음.`, bakery);
-    }
-}
+// [bakery, bakerygamza, bam, bakeryprops].forEach(model => model.visible = false)
 
-// // ✅ 베이커리 감자 등장 함수
-// function moveBakerygamza(){
-// 	if (bakerygamza && bakerygamza.modelMesh) {
-// 		bakerygamza.modelMesh.visible = true
-// 	gsap.to(bakerygamza.modelMesh.position, {
-// 		duration: 0.5,
-// 		x: 81.5,
-// 		y: 7.5,
-// 		z: 90,
-// 		ease: 'Bounce.easeOut',
-// 	});
-// 	} else {
-// 		console.warn(`⚠️ 베이커리 감자 이동 실패: 아직 로드되지 않음.`);
-// 	}
+// // ✅ 베이커리 등장 함수
+// function moveBakery(newY, duration = 0.3) {
+//     if (bakery.loaded && bakery.modelMesh) {
+// 		bakery.modelMesh.visible = true
+//         gsap.to(bakery.modelMesh.position, {
+//             y: newY,
+//             duration,   
+//             ease: "power2.out"
+//         });
+//     } else {
+//         console.warn(`⚠️ 베이커리 이동 실패: 아직 로드되지 않음.`, bakery);
+//     }
+// }
+// // ✅ 베이커리 소품 등장 함수
+// function moveBakeryProps(newY, duration = 0.3) {
+//     if (bakeryprops.loaded && bakeryprops.modelMesh) { // bakery → bakeryprops
+//         bakeryprops.modelMesh.visible = true;
+//         gsap.to(bakeryprops.modelMesh.position, {
+//             y: newY,
+//             duration,
+//             ease: "power2.out"
+//         });
+//     } else {
+//         console.warn(`⚠️ 베이커리 소품 이동 실패: 아직 로드되지 않음.`, bakeryprops);
+//     }
+// }
+// // ✅ 베이커리 밤 등장 함수
+// function moveBakeryBam(newY, duration = 1) {
+//     if (bam.loaded && bam.modelMesh) { // bakery → bam
+//         bam.modelMesh.visible = true;
+//         gsap.to(bam.modelMesh.position, {
+//             y: newY,
+//             duration,
+//             ease: "power2.out"
+//         });
+//     } else {
+//         console.warn(`⚠️ 베이커리 밤 이동 실패: 아직 로드되지 않음.`, bam);
+//     }
 // }
 
-// // ✅ 베이커리 감자 등장 함수
+
+// // ✅ 베이커리 감자 등장 및 이동 애니메이션 함수
 // function moveBakerygamza() {
 // 	if (bakerygamza && bakerygamza.modelMesh) {
 // 	  bakerygamza.modelMesh.visible = true;
   
-// 	  // 기존 애니메이션 중단
-// 	  gsap.killTweensOf(bakerygamza.modelMesh.position);
-  
-// 	  // 새로운 애니메이션 시작
+// 	  // GSAP 애니메이션 - Local Position 수정
 // 	  gsap.to(bakerygamza.modelMesh.position, {
-// 		duration: 0.5,
-// 		x: 100,
-// 		y: 7.5,
-// 		z: 90,
-// 		ease: 'Bounce.easeOut',
+// 		duration: 1,
+// 		x: 74,
+// 		y: 3,
+// 		z: 75,
+// 		ease: 'power2.out',
 // 		onUpdate: () => {
-// 		  bakerygamza.modelMesh.updateMatrixWorld(true);  // 위치 갱신
-// 		},
-// 		onComplete: () => {
-// 		  console.log('✅ 베이커리 감자 이동 완료');
-// 		}
-// 	  });
+// 		  bakerygamza.modelMesh.updateMatrixWorld(true);
   
+// 		  bakerygamza.modelMesh.traverse((node) => {
+// 			if (node.name.startsWith('Cube059')) {
+// 			  const worldPosition = new THREE.Vector3();
+// 			  node.getWorldPosition(worldPosition);
+// 			}
+// 		  });
+// 		},
+// 		onComplete: () => console.log('🎯 이동 완료: BakeryGamza가 목표 위치에 도착했습니다.')
+// 	  });
 // 	} else {
-// 	  console.warn('⚠️ 베이커리 감자 이동 실패: 아직 로드되지 않음.');
+// 	  console.warn('⚠️ 베이커리 감자 이동 실패: 아직 로드되지 않았습니다.');
 // 	}
 //   }
 
-// ✅ 베이커리 감자 등장 및 이동 애니메이션 함수
-function moveBakerygamza() {
-	if (bakerygamza && bakerygamza.modelMesh) {
-	  bakerygamza.modelMesh.visible = true;
-  
-	  // GSAP 애니메이션 - Local Position 수정
-	  gsap.to(bakerygamza.modelMesh.position, {
-		duration: 1,
-		x: 74,
-		y: 0,
-		z: 75,
-		ease: 'power2.out',
-		onUpdate: () => {
-		  bakerygamza.modelMesh.updateMatrixWorld(true);
-  
-		  bakerygamza.modelMesh.traverse((node) => {
-			if (node.name.startsWith('Cube059')) {
-			  const worldPosition = new THREE.Vector3();
-			  node.getWorldPosition(worldPosition);
-			//   console.log(`Node Name: ${node.name}, World Position: (${worldPosition.x}, ${worldPosition.y}, ${worldPosition.z})`);
-			}
-		  });
-		},
-		onComplete: () => console.log('🎯 이동 완료: BakeryGamza가 목표 위치에 도착했습니다.')
-	  });
-	} else {
-	  console.warn('⚠️ 베이커리 감자 이동 실패: 아직 로드되지 않았습니다.');
-	}
-  }
-  
+function moveModelYPosition(model, newY, duration = 0.3) {
+    if (model.loaded && model.modelMesh) {
+        model.modelMesh.visible = true;
+        gsap.to(model.modelMesh.position, {
+            y: newY,
+            duration,
+            ease: "power2.out"
+        });
+    } else {
+        console.warn(`⚠️ 모델 이동 실패: 아직 로드되지 않음.`, model);
+    }
+}
   
   
 let bakeryLoaded = false; // ✅ 모델 로드 중복 방지
@@ -1143,11 +1123,10 @@ function handleBakeryInteraction() {
 	  ) {
 		if (!bakeryLoaded) { 
 			console.log("🚀 [Main Thread] 모델 로드 시작");
-			bakery.loadModel()
-			bakerygamza.loadModel()
-			// bakerydonut_L.loadModel()
-			// bakerydonut_R.loadModel()
-			bakeryLoaded = true
+			bakery.loadModel();
+			bakerygamza.loadModel();
+			bam.loadModel();
+			bakeryprops.loadModel();
 		}
 	}
    // 플레이어가 베이커리 입구에 도착했을 때 실행
@@ -1161,36 +1140,74 @@ function handleBakeryInteraction() {
         player.moving = false;
         emotion.visible = false;
   
-        // player 사라짐
-        gsap.to(player.modelMesh.scale, {
-          duration: 0.1,
-          x: 0,
-          y: 0,
-          z: 0,
-          ease: 'none'
-        });
-		// 카메라 각도 변환
-		gsap.to(camera.position, {
-			duration: 0.5,
-			y: 3
-		});
-
+      
         bakerySpotMesh.visible = false;
         isPressed = false;
   
         disableMouseEvents();
 
+				// player 사라짐
+				gsap.to(player.modelMesh.scale, {
+					duration: 0.1,
+					x: 0,
+					y: 0,
+					z: 0,
+					ease: 'none'
+				});
+				// 카메라 각도 변환
+				gsap.to(camera.position, {
+					duration: 0.5,
+					y: 3
+				});
+				bakeryLoaded = true
+
 		if (bakeryLoaded) { // ✅ 애니메이션 중복 실행 방지
 				setTimeout(() => {
-					moveBakery(0)
-					moveBakerygamza()
+					// moveBakery(0)
+					// moveBakerygamza()
+					
+					// moveBakeryProps(0)
+					// moveBakeryBam(0)
+					moveModelYPosition(bakery, -1);
+                    moveModelYPosition(bakerygamza, 0);
+                    moveModelYPosition(bakeryprops, 0);
+                    moveModelYPosition(bam, 0);
+
 					// 특정 애니메이션 실행
 					if (bakerygamza?.loaded) {
-					bakerygamza.playAnimation('Anim1'); // Anim1 애니메이션 실행
-					setTimeout(() => bakerygamza.playAnimation('Anim2'), 7500); // 8초 후 Idle 애니메이션 실행
-					setTimeout(() => {
-						bakerygamza.playAnimation('Anim3+Sad')
+						bakerygamza.playAnimation('Anim1'); // Anim1 애니메이션 실행
+
+						bakeryprops.playAnimation('Oven0')
+						
+						bakeryprops.playAnimation('DonutTrayAnim1')
+						bakeryprops.playAnimation('DonutRAnim1')
+						bakeryprops.playAnimation('DonutLAnim1')
+						bam.playAnimation('BbAnim2')
+						bam.playAnimation('BaAnim2')
+
+						// bakerytray.playAnimation('DountTrayAnim')
+						// bakerydonut_R.playAnimation('DountRAnim')
+						// bakerydonut_L.playAnimation('DountLAnim')
+						
+						setTimeout(() => {
+							bakerygamza.playAnimation('Anim2')
+							bakeryprops.playAnimation('Oven1')
+							bakeryprops.playAnimation('DonutTrayAnim2')
+							bakeryprops.playAnimation('DonutRAnim2')
+							bakeryprops.playAnimation('DonutLAnim2')
+							
+							// bakeryprops.playAnimation('BbAnim3')
+							// bakeryprops.playAnimation('BaAnim3')
+						}, 7400); // 5초 후 Idle 애니메이션 실행
+
+						setTimeout(() => {
+							bakerygamza.playAnimation('Anim3+Sad')
+							bakeryprops.playAnimation('Oven2')
+							bakeryprops.playAnimation('DonutTrayAnim3')
+							bakeryprops.playAnimation('DonutRAnim3')
+							bakeryprops.playAnimation('DonutLAnim3')
 						}, 17500); // 5초 후 Idle 애니메이션 실행
+
 					}
 					
 				}, 100);
@@ -1202,20 +1219,16 @@ function handleBakeryInteraction() {
 
 				bakeryEntered = true;
 
-				setTimeout(()=>{
-					bakeryFinished = true
-				}, 30000)
-			}
 
-            // ✅ 강의실 인터랙션이 끝났다면 플레이어 복원
-            if (bakeryFinished) {
-                console.log("🔥 베이커리 인터랙션이 종료됨! 플레이어 복원 실행");
-                restorePlayerAfterBakery();
-            }
-    
+				setTimeout(() => {
+					bakeryFinished = true;
+					console.log("🔥 베이커리 인터랙션이 종료됨! 플레이어 복원 실행");
+					restorePlayerAfterBakery(); // ✅ 바로 실행되도록 보장
+				}, 30000);
+				
+			}
 		}
 }
-
 }
 // 🎬 베이커리씬 완료 인터랙션
 function restorePlayerAfterBakery() {
@@ -1319,22 +1332,38 @@ function draw() {
 		bakery.mixer.update(delta);
 		isRenderNeeded = true;
 	}
+	if (bam?.mixer && bam.loaded) {
+		bam.mixer.update(delta);
+		isRenderNeeded = true;
+	}
 	
 	if (bakerygamza?.mixer && bakerygamza.loaded) {
 		bakerygamza.mixer.update(delta);
 	  
 		const rootNode = bakerygamza.modelMesh.getObjectByName('Root');
-		if (rootNode) {
-		//   console.log(`Root Position: ${rootNode.position.x}, ${rootNode.position.y}, ${rootNode.position.z}`);
-		}
-	  
+
 		bakerygamza.modelMesh.updateMatrixWorld(true);
 		const worldPosition = new THREE.Vector3();
 		bakerygamza.modelMesh.getWorldPosition(worldPosition);
 		isRenderNeeded = true;
 		// console.log(`🌍 World Position: ${worldPosition.x}, ${worldPosition.y}, ${worldPosition.z}`);
 	  }
+
+
+	  if (bakeryprops?.mixer && bakeryprops.loaded) {
+		bakeryprops.mixer.update(delta);
 	  
+		const rootNode2 = bakeryprops.modelMesh.getObjectByName('Root');
+
+		bakeryprops.modelMesh.updateMatrixWorld(true);
+		const worldPosition = new THREE.Vector3();
+		bakeryprops.modelMesh.getWorldPosition(worldPosition);
+		isRenderNeeded = true;
+		// console.log(`🌍 World Position: ${worldPosition.x}, ${worldPosition.y}, ${worldPosition.z}`);
+	  }
+
+
+
 
 	if (!started) {
 		setTimeout(() => {
@@ -1363,7 +1392,7 @@ function draw() {
 		// 감자가 움직일 때
 		if (player.moving) {
 			
-			scene.add(emotion)
+			// scene.add(emotion)
 
 			if (emotion) {
 				emotion.position.y = 5 + sinValue * 0.4;
@@ -1375,8 +1404,8 @@ function draw() {
 				destinationPoint.x - player.modelMesh.position.x
 			);
 			// 구한 각도를 이용해 좌표를 구하고 그 좌표로 이동
-			player.modelMesh.position.x += Math.cos(angle) * 0.4;  // 걷는 속도 0.15
-			player.modelMesh.position.z += Math.sin(angle) * 0.4;
+			player.modelMesh.position.x += Math.cos(angle) * 0.2;  // 걷는 속도 0.15
+			player.modelMesh.position.z += Math.sin(angle) * 0.2;
 
 			// 카메라도 같이 이동
 			camera.position.x = cameraPosition.x + player.modelMesh.position.x;
