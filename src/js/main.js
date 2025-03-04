@@ -21,6 +21,7 @@ import { File } from './classes/File';
 import { Bankbook } from './classes/Bankbook';
 import { Coffee } from './classes/Coffee';  
 import { RectAreaLightHelper } from 'three/examples/jsm/helpers/RectAreaLightHelper'
+import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 
 
 // Texture
@@ -28,8 +29,8 @@ const textureLoader = new THREE.TextureLoader();
 const floorTexture = textureLoader.load('images/grid.png');
 floorTexture.wrapS = THREE.RepeatWrapping;
 floorTexture.wrapT = THREE.RepeatWrapping;
-floorTexture.repeat.x = 50;
-floorTexture.repeat.y = 50;
+floorTexture.repeat.x = 25;
+floorTexture.repeat.y = 25;
 
 // Renderer
 const canvas = document.querySelector('#three-canvas');
@@ -62,11 +63,11 @@ const camera = new THREE.OrthographicCamera(
 
 const cameraPosition = new THREE.Vector3(1, 5, 5);
 camera.position.set(cameraPosition.x, cameraPosition.y, cameraPosition.z);
-camera.zoom = 0.08; // OrthographicCamera는 줌 설정 가능
+camera.zoom = 0.075; // OrthographicCamera는 줌 설정 가능
 camera.updateProjectionMatrix();
 
 
-// Camera
+// Camera2
 const camera2 = new THREE.OrthographicCamera(
 	-(window.innerWidth / window.innerHeight), // left
 	window.innerWidth / window.innerHeight, // right,
@@ -75,8 +76,6 @@ const camera2 = new THREE.OrthographicCamera(
 	-1000,
 	1000
 );
-
-
 camera2.position.x = 45
 camera2.position.y = 4
 camera2.position.z = 57
@@ -84,7 +83,6 @@ camera2.zoom = 0.13
 camera2.updateProjectionMatrix();
 
 camera2.lookAt(45, 1, 52)
-
 
 
 
@@ -98,14 +96,14 @@ const gltfLoader = new GLTFLoader()
 
 
 // GUI
-// const gui = new GUI();
-// const cameraFolder = gui.addFolder('Camera');
-// cameraFolder.add(camera, 'zoom', 0.01, 0.3, 0.001) // 줌 범위 설정 (최소값, 최대값, 스텝)
-// 	.name('Zoom')
-// 	.onChange(() => {
-// 		camera.updateProjectionMatrix(); // 줌 변경 후 업데이트 필요
-// 	});
-// cameraFolder.open();
+const gui = new GUI();
+const cameraFolder = gui.addFolder('Camera');
+cameraFolder.add(camera, 'zoom', 0.01, 0.3, 0.001) // 줌 범위 설정 (최소값, 최대값, 스텝)
+	.name('Zoom')
+	.onChange(() => {
+		camera.updateProjectionMatrix(); // 줌 변경 후 업데이트 필요
+	});
+cameraFolder.open();
 
 // Light
 const ambientLight = new THREE.AmbientLight('#fff', 2.5);
@@ -120,9 +118,6 @@ directionalLight.position.set(1, 1, 1);
 directionalLight.castShadow = true;
 directionalLight.shadow.mapSize.set(1024, 1024);
 
-// mapSize 세팅으로 그림자 퀄리티 설정
-// directionalLight.shadow.mapSize.width = 2024;
-// directionalLight.shadow.mapSize.height = 2024;
 // 그림자 범위
 directionalLight.shadow.camera.left = -100;
 directionalLight.shadow.camera.right = 100;
@@ -136,7 +131,7 @@ scene.add(directionalLight);
 // Mesh
 const meshes = [];
 const floorMesh = new THREE.Mesh(
-	new THREE.PlaneGeometry(1000, 1000),
+	new THREE.PlaneGeometry(400, 400),
 	new THREE.MeshStandardMaterial({ map: floorTexture })
 );
 floorMesh.name = 'floor';
@@ -186,7 +181,7 @@ bakery.loadModel()
 
 /// 바닥 이미지 ------
 // 바닥 이미지 - 돌 감자
-const dolgamzaTexture = new THREE.TextureLoader().load('images/rock_gamza.png')
+const dolgamzaTexture = new THREE.TextureLoader().load('images/tree.png')
 const dolgamzaPlaneGeometry = new THREE.PlaneGeometry(1, 1);
 const dolgamzaMaterial = new THREE.MeshBasicMaterial({
 	map: dolgamzaTexture,
@@ -201,7 +196,7 @@ dolgamza.position.x = 33
 dolgamza.position.z = 32
 dolgamza.position.y = 0.5
 dolgamza.scale.set(7, 10, 10)
-dolgamza.rotation.x = THREE.MathUtils.degToRad(-90)
+dolgamza.rotation.x = THREE.MathUtils.degToRad(0)
 // dolgamza.rotation.z = THREE.MathUtils.radToDeg(90)
 // scene.add(dolgamza);
 
@@ -480,8 +475,70 @@ const arrowPositions = [
 
 
 
+// -----------------------------------
 
 // #S2 - 커피 픽업하는 대감이
+
+// 바닥 이미지 - 꽃
+const flower1Texture = new THREE.TextureLoader().load('images/flower2.png')
+const flower1PlaneGeometry = new THREE.PlaneGeometry(1, 1);
+const flower1Material = new THREE.MeshBasicMaterial({
+	map: flower1Texture,
+	transparent: true, // PNG의 투명도 반영
+	alphaTest: 0.5 // 알파 값 기준
+});
+flower1Texture.colorSpace = THREE.SRGBColorSpace; // sRGB 색 공간 설정
+flower1Texture.needsUpdate = true;
+const flower1 = new THREE.Mesh(flower1PlaneGeometry, flower1Material);
+flower1.castShadow = true; 
+flower1.position.x = -75
+flower1.position.z = -35
+flower1.position.y = 1.1
+flower1.scale.set(3, 3, 3)
+flower1.rotation.x = THREE.MathUtils.degToRad(0)
+// dolgamza.rotation.z = THREE.MathUtils.radToDeg(90)
+scene.add(flower1);
+
+const flower2Texture = new THREE.TextureLoader().load('images/flower3.png')
+const flower2PlaneGeometry = new THREE.PlaneGeometry(1, 1);
+const flower2Material = new THREE.MeshBasicMaterial({
+	map: flower2Texture,
+	transparent: true, // PNG의 투명도 반영
+	alphaTest: 0.5 // 알파 값 기준
+});
+flower2Texture.colorSpace = THREE.SRGBColorSpace; // sRGB 색 공간 설정
+flower2Texture.needsUpdate = true;
+const flower2 = new THREE.Mesh(flower2PlaneGeometry, flower2Material);
+flower2.castShadow = true; 
+flower2.position.x = -68
+flower2.position.z = -40
+flower2.position.y = 1.1
+flower2.scale.set(3, 3, 3)
+flower2.rotation.x = THREE.MathUtils.degToRad(0)
+// dolgamza.rotation.z = THREE.MathUtils.radToDeg(90)
+scene.add(flower2);
+
+
+const tree1Texture = new THREE.TextureLoader().load('images/tree.png')
+const tree1PlaneGeometry = new THREE.PlaneGeometry(1, 1);
+const tree1Material = new THREE.MeshBasicMaterial({
+	map: tree1Texture,
+	transparent: true, // PNG의 투명도 반영
+	alphaTest: 0.5 // 알파 값 기준
+});
+tree1Texture.colorSpace = THREE.SRGBColorSpace; // sRGB 색 공간 설정
+tree1Texture.needsUpdate = true;
+const tree1 = new THREE.Mesh(tree1PlaneGeometry, tree1Material);
+tree1.castShadow = true; 
+tree1.position.x = -79
+tree1.position.z = -45
+tree1.position.y = 2
+tree1.scale.set(5, 5, 5)
+tree1.rotation.y = THREE.MathUtils.degToRad(10)
+// dolgamza.rotation.z = THREE.MathUtils.radToDeg(90)
+scene.add(tree1);
+
+
 
 const cafe = new CafeGamza({
 	scene,
@@ -558,9 +615,6 @@ giveCoffee.castShadow = true;
 giveCoffee.position.x = -68
 giveCoffee.position.z = -38
 giveCoffee.position.y = 5
-// sorry.scale.set(5, 1, 11)
-giveCoffee.rotation.x = THREE.MathUtils.degToRad(0)
-
 
 
 
@@ -568,7 +622,7 @@ giveCoffee.rotation.x = THREE.MathUtils.degToRad(0)
 let coffeeLoaded = false; // ✅ 모델 로드 중복 방지
 let coffeeFinished = false;
 
-// ☕️ 카페 인터랙션 함수
+// 🧋 카페 인터랙션 함수
 function handleCoffeeInteraction() {
 	// 플레이어가 텅장 스팟 매쉬에 도착했을 때 실행
 	 if (
@@ -1086,7 +1140,7 @@ const noMoneyText = new THREE.Mesh(noMoneyPlaneGeometry, noMoneyMaterial);
 noMoneyText.castShadow = true; 
 noMoneyText.position.x = 10.8
 noMoneyText.position.y = 1.3
-noMoneyText.position.z = 36.3
+noMoneyText.position.z = 36.5
 
 
 // 💸 텅장 감자
@@ -1117,10 +1171,25 @@ const bankbook = new Bankbook({
 	scaleZ: 1.5, 
 	x: 11,
 	y: -10,
-	z: 35,
-	rotationY: THREE.MathUtils.degToRad(-70),
+	z: 35.3,
+	rotationY: THREE.MathUtils.degToRad(-60),
 })
 bankbook.loadModel()
+
+const nomoneyTexture = new THREE.TextureLoader().load('images/talk5.png')
+const nomoneyPlaneGeometry = new THREE.PlaneGeometry(2, 2);
+const nomoneyMaterial = new THREE.MeshBasicMaterial({
+	map: nomoneyTexture,
+	transparent: true, // PNG의 투명도 반영
+	alphaTest: 0.5 // 알파 값 기준
+});
+nomoneyTexture.colorSpace = THREE.SRGBColorSpace; // sRGB 색 공간 설정
+nomoneyTexture.needsUpdate = true;
+const nomoney = new THREE.Mesh(nomoneyPlaneGeometry, nomoneyMaterial);
+nomoney.castShadow = true; 
+nomoney.position.x = 14
+nomoney.position.z = 35
+nomoney.position.y = 3.5
 
 
 let bankLoaded = false; // ✅ 모델 로드 중복 방지
@@ -1180,11 +1249,13 @@ function handleNomoneyInteraction() {
 					ease: 'bounce.out'
 				})
 			} , 4500)
-	
-
+			
+			setTimeout(() => {	
+				scene.add(nomoney)
+			}, 6500)
+			
 			setTimeout(() => {
 				bankFinished = true;
-				console.log("🔥 베이커리 인터랙션이 종료됨! 플레이어 복원 실행");
 				restorePlayerAfterNomoney(); // ✅ 바로 실행되도록 보장
 			}, 10000);
 		}
@@ -1210,8 +1281,8 @@ function restorePlayerAfterNomoney() {
 			bankbook.modelMesh.visible = false
 			scene.remove(nomoneygamza)
 			scene.remove(bankbook)
+			scene.remove(nomoney)
 			noMoneyText.visible = false
-
 		}, 1000)
 
 		setTimeout(()=>{
@@ -1276,114 +1347,168 @@ const albaboard = new MailBox({
 	scaleZ: 1.5, 
 	x: 42.5,
 	y: 0.5,
-	z: 56,
+	z: 57,
 })
 albaboard.loadModel()
 
 // 게시물들
-const DokseoMemo = new MailBox({
-	scene,
-	meshes,
-	gltfLoader,
-	modelSrc: './models/DokseoMemo.glb',  
-	scaleX: 1.5,
-	scaleY: 1.5, 
-	scaleZ: 1.5, 
-	x: 45.5,
-	y: 6.8,
-	z: 57,
-})
-const DoNotNakseoMemo = new MailBox({
-	scene,
-	meshes,
-	gltfLoader,
-	modelSrc: './models/DoNotNakseoMemo.glb',  
-	scaleX: 1.5,
-	scaleY: 1.5, 
-	scaleZ: 1.5, 
-	x: 45.5,
-	y: 6.8,
-	z: 57,
-})
-const BakeryMemo = new MailBox({
-	scene,
-	meshes,
-	gltfLoader,
-	modelSrc: './models/BakeryMemo.glb',  
-	scaleX: 1.5,
-	scaleY: 1.5, 
-	scaleZ: 1.5, 
-	x: 45.5,
-	y: 6.8,
-	z: 57,
-})
-const KidsMemo = new MailBox({
-	scene,
-	meshes,
-	gltfLoader,
-	modelSrc: './models/KidsMemo.glb',  
-	scaleX: 1.5,
-	scaleY: 1.5, 
-	scaleZ: 1.5, 
-	x: 45.5,
-	y: 6.8,
-	z: 57,
-})
-const SushiMemo = new MailBox({
-	scene,
-	meshes,
-	gltfLoader,
-	modelSrc: './models/SushiMemo.glb',  
-	scaleX: 1.5,
-	scaleY: 1.5, 
-	scaleZ: 1.5, 
-	x: 45.5,
-	y: 6.8,
-	z: 57,
-})
-const WonesoongMemo = new MailBox({
-	scene,
-	meshes,
-	gltfLoader,
-	modelSrc: './models/WonesoongMemo.glb',  
-	scaleX: 1.5,
-	scaleY: 1.5, 
-	scaleZ: 1.5, 
-	x: 45.5,
-	y: 6.8,
-	z: 57,
-})
-const IwannagoHomeMemo = new MailBox({
-	scene,
-	meshes,
-	gltfLoader,
-	modelSrc: './models/IwannagoHomeMemo.glb',  
-	scaleX: 1.5,
-	scaleY: 1.5, 
-	scaleZ: 1.5, 
-	x: 45.5,
-	y: 6.8,
-	z: 57,
-})
-const GamzaMemo = new MailBox({
-	scene,
-	meshes,
-	gltfLoader,
-	modelSrc: './models/GamzaMemo.glb',  
-	scaleX: 1.5,
-	scaleY: 1.5, 
-	scaleZ: 1.5, 
-	x: 45.5,
-	y: 6.8,
-	z: 57,
-})
+// const DokseoMemo = new MailBox({
+// 	scene,
+// 	meshes,
+// 	gltfLoader,
+// 	modelSrc: './models/DokseoMemo.glb',  
+// 	scaleX: 1.5,
+// 	scaleY: 1.5, 
+// 	scaleZ: 1.5, 
+// 	x: 45.5,
+// 	y: 6.8,
+// 	z: 57,
+// 	name: 'DokseoMemo',
+// })
+// const DoNotNakseoMemo = new MailBox({
+// 	scene,
+// 	meshes,
+// 	gltfLoader,
+// 	modelSrc: './models/DoNotNakseoMemo.glb',  
+// 	scaleX: 1.5,
+// 	scaleY: 1.5, 
+// 	scaleZ: 1.5, 
+// 	x: 45.5,
+// 	y: 6.8,
+// 	z: 57,
+// 	name: 'DoNotNakseoMemo',
+// })
+// const BakeryMemo = new MailBox({
+// 	scene,
+// 	meshes,
+// 	gltfLoader,
+// 	modelSrc: './models/BakeryMemo.glb',  
+// 	scaleX: 1.5,
+// 	scaleY: 1.5, 
+// 	scaleZ: 1.5, 
+// 	x: 45.5,
+// 	y: 6.8,
+// 	z: 57,
+// 	name: 'BakeryMemo',
+// })
+// const KidsMemo = new MailBox({
+// 	scene,
+// 	meshes,
+// 	gltfLoader,
+// 	modelSrc: './models/KidsMemo.glb',  
+// 	scaleX: 1.5,
+// 	scaleY: 1.5, 
+// 	scaleZ: 1.5, 
+// 	x: 45.5,
+// 	y: 6.8,
+// 	z: 57,
+// 	name: 'KidsMemo',
+// })
+// const SushiMemo = new MailBox({
+// 	scene,
+// 	meshes,
+// 	gltfLoader,
+// 	modelSrc: './models/SushiMemo.glb',  
+// 	scaleX: 1.5,
+// 	scaleY: 1.5, 
+// 	scaleZ: 1.5, 
+// 	x: 45.5,
+// 	y: 6.8,
+// 	z: 57,
+// 	name: 'SushiMemo',
+// })
+// const WonesoongMemo = new MailBox({
+// 	scene,
+// 	meshes,
+// 	gltfLoader,
+// 	modelSrc: './models/WonesoongMemo.glb',  
+// 	scaleX: 1.5,
+// 	scaleY: 1.5, 
+// 	scaleZ: 1.5, 
+// 	x: 45.5,
+// 	y: 6.8,
+// 	z: 57,
+// 	name: 'WonesoongMemo',
+// })
+// const IwannagoHomeMemo = new MailBox({
+// 	scene,
+// 	meshes,
+// 	gltfLoader,
+// 	modelSrc: './models/IwannagoHomeMemo.glb',  
+// 	scaleX: 1.5,
+// 	scaleY: 1.5, 
+// 	scaleZ: 1.5, 
+// 	x: 45.5,
+// 	y: 6.8,
+// 	z: 57,
+// 	name: 'IwannagoHomeMemo',
+// })
+// const GamzaMemo = new MailBox({
+// 	scene,
+// 	meshes,
+// 	gltfLoader,
+// 	modelSrc: './models/GamzaMemo.glb',  
+// 	scaleX: 1.5,
+// 	scaleY: 1.5, 
+// 	scaleZ: 1.5, 
+// 	x: 45.5,
+// 	y: 6.8,
+// 	z: 57,
+// 	name: 'GamzaMemo',
+// })
 
-const memoModelsToLoad = [DokseoMemo,DoNotNakseoMemo,BakeryMemo,KidsMemo,WonesoongMemo,SushiMemo, IwannagoHomeMemo, GamzaMemo];
-// ✅ 모든 모델이 로드될 때까지 기다림
-Promise.all(memoModelsToLoad.map(model => model.loadModel()))
-.catch(error => {
-	console.error("❌ [Main Thread] 모델 로딩 중 오류 발생:", error);
-});
+const memoModels = [];
+
+function createMemoModel(name, position, size, imagePath) {
+    const memoTextureLoader = new THREE.TextureLoader();
+    
+    // ✅ TextureLoader 비동기 로드 후 설정
+    memoTextureLoader.load(imagePath, (texture) => {
+        texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
+        texture.colorSpace = THREE.SRGBColorSpace;
+        texture.magFilter = THREE.LinearFilter;
+        texture.minFilter = THREE.LinearMipmapLinearFilter;
+        texture.needsUpdate = true; // ✅ 텍스처가 로드된 후 업데이트 설정
+
+        const memoGeometry = new THREE.PlaneGeometry(size.width, size.height);
+        const memoMaterial = new THREE.MeshBasicMaterial({ 
+            map: texture,
+            transparent: true, // ✅ 투명 배경 적용
+            side: THREE.DoubleSide,
+            alphaTest: 0.5 // 알파 값 기준
+        });
+
+        const modelMesh = new THREE.Mesh(memoGeometry, memoMaterial);
+        modelMesh.position.set(position.x, position.y, position.z);
+        modelMesh.userData.memoName = name;
+
+        memoModels.push(modelMesh);
+        scene.add(modelMesh);
+    });
+}
+
+// 🔥 게시물 `modelMesh` 생성 (이미지 포함)
+createMemoModel("DokseoMemo", { x: 50.5, y: 5, z: 58.5 }, { width: 2.2, height: 3.8 }, "/images/dokseo.png");
+createMemoModel("DoNotNakseoMemo", { x: 47.7, y: 9, z: 58.5 }, { width: 1.5, height: 2.3 }, "/images/donotnackseo.png");
+createMemoModel("BakeryMemo", { x: 44.8, y: 8.7, z: 58.5 }, { width: 2.8, height: 4 }, "/images/bakery.png");
+createMemoModel("KidsMemo", { x: 41.6, y: 8.7, z: 58.5 }, { width: 2.6, height: 3.8 }, "/images/kids.png");
+createMemoModel("WonesoongMemo", { x: 44.5, y: 5, z: 58.5 }, { width: 1.3, height: 1.5 }, "/images/wonesoong.png");
+createMemoModel("SushiMemo", { x: 47.8, y: 5, z: 58.5 }, { width: 2.2, height: 3.3 }, "/images/sushi.png");
+createMemoModel("IwannagoHomeMemo", { x: 50, y: 9, z: 58.5 }, { width: 1.5, height: 1.5 }, "/images/iwannagohome.png");
+createMemoModel("GamzaMemo", { x: 42, y: 5, z: 58.5 }, { width: 3.5, height: 2.5 }, "/images/gamza.png");
+
+
+
+
+
+// const memoModels = [DokseoMemo,DoNotNakseoMemo,BakeryMemo,KidsMemo,WonesoongMemo,SushiMemo, IwannagoHomeMemo, GamzaMemo];
+
+// // ✅ 모든 모델이 로드될 때까지 기다림
+// Promise.all(memoModels.map(model => model.loadModel()))
+// .catch(error => {
+// 	console.error("❌ [Main Thread] 모델 로딩 중 오류 발생:", error);
+// });
+
 
 // 알바 찾기 감자
 const albagamza = new AlbaGamza({
@@ -1406,39 +1531,40 @@ albagamza.loadModel()
 
 // ✅ Box Mesh 생성
 const boardBoxGeometry = new THREE.BoxGeometry(15, 11, 1);
-const bakeryBoxGeometry = new THREE.BoxGeometry(3.5, 3, 2); // (가로, 세로, 깊이)
-// const kidescafeBoxGeometry = new THREE.BoxGeometry(2.7, 2.2, 2); // (가로, 세로, 깊이)
-// const gamzaBoxGeometry = new THREE.BoxGeometry(2.8, 1.1, 2); // (가로, 세로, 깊이)
-// const sushiGeometry = new THREE.BoxGeometry(2.1, 1.5, 2); // (가로, 세로, 깊이)
-// const libraryGeometry = new THREE.BoxGeometry(2.2, 1.6, 2.1); // (가로, 세로, 깊이)
+
+// const bakeryGeometry = new THREE.PlaneGeometry(3.5, 3); // (가로, 세로, 깊이)
+// const kidescafeGeometry = new THREE.PlaneGeometry(2.7, 2.2); // (가로, 세로, 깊이)
+// const gamzaGeometry = new THREE.PlaneGeometry(2.8, 1.1); // (가로, 세로, 깊이)
+// const sushiGeometry = new THREE.PlaneGeometry(2.1, 1.5); // (가로, 세로, 깊이)
+// const libraryGeometry = new THREE.PlaneGeometry(2.2, 1.6); // (가로, 세로, 깊이)
 
 const material = new THREE.MeshBasicMaterial({ color: 0x00ff00, wireframe: true });
-const material2 = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+// const material2 = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
 
 const boardBox = new THREE.Mesh(boardBoxGeometry, material);
-const bakeryBox = new THREE.Mesh(bakeryBoxGeometry, material2);
-// const kidscafeBox = new THREE.Mesh(kidescafeBoxGeometry, material2);
-// const gamzaBox = new THREE.Mesh(gamzaBoxGeometry, material2);
-// const sushiBox = new THREE.Mesh(sushiGeometry, material2);
-// const libraryBox = new THREE.Mesh(libraryGeometry, material2);
+// const bakeryPlane = new THREE.Mesh(bakeryGeometry, material2);
+// const kidscafePlane = new THREE.Mesh(kidescafeGeometry, material2);
+// const gamzaPlane = new THREE.Mesh(gamzaGeometry, material2);
+// const sushiPlane = new THREE.Mesh(sushiGeometry, material2);
+// const libraryPlane = new THREE.Mesh(libraryGeometry, material2);
 
 
 // ✅ 위치 설정
 boardBox.position.set(43, 6, 52);
 
-bakeryBox.position.set(44.85, 7, 53);
-// kidscafeBox.position.set(41.5, 7.2, 53);
-// gamzaBox.position.set(41.6, 4, 53);
-// sushiBox.position.set(45.8, 3.85, 53);
-// libraryBox.position.set(48.3, 4.2, 53);
+// bakeryPlane.position.set(44.85, 7, 53);
+// kidscafePlane.position.set(41.5, 7.2, 53);
+// gamzaPlane.position.set(41.6, 4, 53);
+// sushiPlane.position.set(45.8, 3.85, 53);
+// libraryPlane.position.set(48.3, 4.2, 53);
 
 
 boardBox.visible = false
-bakeryBox.visible = false
-// kidscafeBox.visible = false
-// gamzaBox.visible = false
-// sushiBox.visible = false
-// libraryBox.visible = false
+// bakeryPlane.visible = false
+// kidscafePlane.visible = false
+// gamzaPlane.visible = false
+// sushiPlane.visible = false
+// libraryPlane.visible = false
 
 
 
@@ -1491,7 +1617,6 @@ function handleFindAlbaInteraction() {
 
 		moveModelYPosition(albagamza, 0);
 
-	
 		
 		findAlbaLoaded = true
 
@@ -1500,7 +1625,7 @@ function handleFindAlbaInteraction() {
 			albagamza.actions[2].play()
 			
 			scene.add(boardBox);
-
+		
 			setTimeout(() => {
 				findAlbaFinished = true;
 				restorePlayerAfterFindAlba(); // ✅ 바로 실행되도록 보장
@@ -1511,7 +1636,7 @@ function handleFindAlbaInteraction() {
 // 🎬 알바 찾기 완료 인터랙션
 function restorePlayerAfterFindAlba() {
 	if (findAlbaFinished) {
-		setTimeout(()=>{
+		setTimeout(() => {
 			gsap.to(albagamza.modelMesh.position, {
 				duration: 0.4,
 				y: 1,
@@ -1528,7 +1653,7 @@ function restorePlayerAfterFindAlba() {
 			// scene.remove(albagamza)
 		}, 1000)
 
-		setTimeout(()=>{
+		setTimeout(() => {
 			   // 카메라 각도 변환
 				returnCameraY()
 		}, 3000)
@@ -1686,13 +1811,15 @@ let bakeryFinished = false;
 
 // 🥐 베이커리 인터랙션 함수
 function handleBakeryInteraction() {
-
    // 플레이어가 베이커리 입구에 도착했을 때 실행
     if (
       Math.abs(bakerySpotMesh.position.x - player.modelMesh.position.x) < 1.5 &&
       Math.abs(bakerySpotMesh.position.z - player.modelMesh.position.z) < 1.5
     ) {
       if (!bakery.visible) {
+
+		bakeryEntered = true;
+
         bakerySpotMesh.material.color.set('seagreen');
 
         player.moving = false;
@@ -1713,8 +1840,8 @@ function handleBakeryInteraction() {
 		bakeryLoaded = true
 
 
-		if (bakeryLoaded) { // ✅ 애니메이션 중복 실행 방지
-			setTimeout(() => {
+		if (bakeryLoaded && bakeryEntered) { // ✅ 애니메이션 중복 실행 방지
+	
 				moveModelYPosition(bakery, -1);
 				moveModelYPosition(bakerygamza, -1);
 				moveModelYPosition(bakeryprops, -1);
@@ -1724,8 +1851,7 @@ function handleBakeryInteraction() {
 				if (bakerygamza?.loaded) {
 
 					let ovenStart = false
-		
-
+	
 					if (!ovenStart) {
 						bakerygamza.playAnimation('Anim1'); // Anim1 애니메이션 실행
 
@@ -1749,19 +1875,17 @@ function handleBakeryInteraction() {
 						}, 19000)
 					}
 				}
-			}, 100);
+
 		
 			setTimeout(() => {
-				scene.add(bakeryLight, bakeryLight2, bakerySunLight)
+				scene.add(bakeryLight, bakeryLight2, )
 					// showArrowAt(0); // 첫 번째 화살표 보이기
 			}, 400);
 
-			bakeryEntered = true;
 
 
 			setTimeout(() => {
 				bakeryFinished = true;
-				console.log("🔥 베이커리 인터랙션이 종료됨! 플레이어 복원 실행");
 				restorePlayerAfterBakery(); // ✅ 바로 실행되도록 보장
 			}, 30000);
 			
@@ -1772,8 +1896,7 @@ function handleBakeryInteraction() {
 // 🎬 베이커리씬 완료 인터랙션
 function restorePlayerAfterBakery() {
     if (bakeryFinished) {
-        console.log("✅ 베이커리 인터랙션 종료! 플레이어 다시 등장 로직 실행");
-		setTimeout(()=>{
+		setTimeout(() => {
 			gsap.to(bakerygamza.modelMesh.position, {
 				duration: 0.4,
 				y: 1,
@@ -1788,24 +1911,21 @@ function restorePlayerAfterBakery() {
 			});
 		}, 1000)
 
-		setTimeout(()=>{
+		setTimeout(() => {
 			   // 카메라 각도 변환
 				returnCameraY()
+
 		}, 2000)
 
-		setTimeout(()=>{
+		setTimeout(() => {
 			// ✅ 플레이어 다시 등장
 			appearPlayer()
 
 			player.modelMesh.position.set(84, 0.3, 93);
 			emotion.visible = true;
-		
-			console.log("✅ 플레이어 위치 설정:", player.modelMesh.position);
-
 			// ✅ 강제 이동 방지를 위해 destinationPoint 초기화
 			destinationPoint.x = 87;
 			destinationPoint.z = 117;
-			console.log(destinationPoint.x , destinationPoint.z)
 
 			// ✅ 이동을 즉시 시작하지 않도록 설정
 			player.moving = true;
@@ -1815,10 +1935,9 @@ function restorePlayerAfterBakery() {
 	
 		}, 3000)
 
-		setTimeout(()=>{
+		setTimeout(() => {
 		// ✅ 마우스 이벤트 다시 활성화
 		enableMouseEvents();
-		console.log("✅ 마우스 이벤트 활성화 완료");
 		}, 1000)
     }
 }
@@ -1904,50 +2023,109 @@ mailSpotMesh.rotation.x = THREE.MathUtils.degToRad(-50)
 mailSpotMesh.receiveShadow = true;
 scene.add(mailSpotMesh);
 
+// // ✅ GIF 메쉬 생성 및 초기 설정
+// const gifMaterial = new THREE.MeshBasicMaterial({ transparent: true });
+// const firecrackerPlaneGeometry = new THREE.PlaneGeometry(16, 9); // 크기 조정
+// const gifMesh = new THREE.Mesh(firecrackerPlaneGeometry, gifMaterial);
 
+// // 📌 초기 위치 설정 (보이지 않도록 숨김)
+// gifMesh.position.set(109, -10, 131); // 시작 위치를 아래쪽으로 설정
+// gifMesh.rotation.x = THREE.MathUtils.degToRad(50);
+// gifMesh.visible = false;
+// scene.add(gifMesh);
+
+// console.log("🎯 GIF Mesh 생성 완료!");
+
+// // ✅ GIF 애니메이션 로드 함수
+// function loadAnimatedGIF(url, material) {
+//     const canvas = document.createElement("canvas");
+//     const ctx = canvas.getContext("2d");
+
+//     gifler(url).get((aGif) => {
+//         console.log("🎥 GIF 데이터 로드 완료:", aGif);
+
+//         if (!aGif || typeof aGif.renderFrame !== "function") {
+//             console.error("❌ GIF 데이터를 올바르게 불러오지 못했습니다!", aGif);
+//             return;
+//         }
+
+//         canvas.width = aGif.width;
+//         canvas.height = aGif.height;
+
+//         function updateFrame() {
+//             aGif.renderFrame(ctx, 0); // 🔥 최신 버전에서는 `renderFrame()` 사용
+//             material.map.needsUpdate = true;
+//             requestAnimationFrame(updateFrame);
+//         }
+
+//         const texture = new THREE.CanvasTexture(canvas);
+//         texture.needsUpdate = true;
+//         material.map = texture;
+//         material.needsUpdate = true;
+
+//         console.log("🎬 GIF 애니메이션 시작!");
+//         updateFrame();
+//     });
+// }
+
+function showGIFOverlay() {
+    const gifOverlay = document.getElementById("gifOverlay");
+    gifOverlay.style.display = "flex"; // GIF 표시
+
+    console.log("🎇 종이 폭죽 GIF 표시됨!");
+
+    // 3초 후 자동으로 숨김
+    setTimeout(() => {
+        hideGIFOverlay();
+    }, 3000);
+}
+
+function hideGIFOverlay() {
+    const gifOverlay = document.getElementById("gifOverlay");
+    gifOverlay.style.display = "none"; // GIF 숨김
+
+    console.log("❌ GIF 오버레이 숨김!");
+}
+
+
+// ✅ 과제 제출 인터랙션
 function handleMailInteraction() {
-	if (
-		Math.abs(mailSpotMesh.position.x - player.modelMesh.position.x) < 1.5 &&
-		Math.abs(mailSpotMesh.position.z - player.modelMesh.position.z) < 1.5
-	  ) {
-        mailSpotMesh.material.color.set('seagreen');
+    if (
+        Math.abs(mailSpotMesh.position.x - player.modelMesh.position.x) < 1.5 &&
+        Math.abs(mailSpotMesh.position.z - player.modelMesh.position.z) < 1.5
+    ) {
+        mailSpotMesh.material.color.set("seagreen");
 
         player.moving = false;
         emotion.visible = false;
-  
-		scene.remove(mailSpotMesh)
-
-        // mailSpotMesh.visible = false;
+        scene.remove(mailSpotMesh);
         isPressed = false;
-  
         disableMouseEvents();
-					
-		// Player 사라지기
-		disappearPlayer()
 
-		// 카메라 각도 변환
-		downCameraY()
+        disappearPlayer();
+        downCameraY();
 
-		setTimeout(() => {
+        setTimeout(() => {
+            moveModelYPosition(mailgamza, 0);
+            moveModelYPosition(file, 0);
 
-			moveModelYPosition(mailgamza, 0);
-			moveModelYPosition(file, 0);
-
+            setTimeout(() => {
+                mailgamza.actions[0].play();
+                file.loadModel();
+				// 🔥 Three.js 이벤트에서 GIF 오버레이 실행
 				setTimeout(() => {
-					mailgamza.actions[0].play()
-					file.loadModel()
-					// file.actions[0].play()
-				}, 500)
-		}, 1000)
+					showGIFOverlay(); // GIF 화면 전체 표시
+				}, 4000);
+            }, 500);
+        }, 1000);
 
-
-		setTimeout(() => {
-			mailFinished = true;
-			console.log("🔥 메일 인터랙션이 종료됨! 플레이어 복원 실행");
-			restorePlayerAfterMail(); // ✅ 바로 실행되도록 보장
-		}, 5000);
-	  }
+        setTimeout(() => {
+            mailFinished = true;
+            restorePlayerAfterMail();
+        }, 5000);
+    }
 }
+
 // 🎬 과제 제출 완료 인터랙션
 function restorePlayerAfterMail() {
     if (mailFinished) {
@@ -2011,12 +2189,71 @@ function restorePlayerAfterMail() {
 
 
 
+// function createPaperExplosion(position) {
+// 	const particleCount = 300; // 입자 개수 증가
+// 	let geometries = []; // 병합할 지오메트리 리스트
+// 	const colors = [];
 
+// 	for (let i = 0; i < particleCount; i++) {
+// 		const particleGeo = new THREE.BufferGeometry();
+// 		const vertices = new Float32Array([
+// 			position.x + (Math.random() - 0.5) * 6, // X 위치
+// 			position.y - Math.random() * 2, // Y 위치 (아래에서 시작)
+// 			position.z + (Math.random() - 0.5) * 6, // Z 위치
+// 		]);
 
+// 		particleGeo.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
 
+// 		// 🎨 알록달록한 랜덤 색상 적용 (HSL 사용)
+// 		const color = new THREE.Color();
+// 		color.setHSL(Math.random(), 0.8, 0.6); // 다채로운 색상, 밝기 조정
+// 		colors.push(color.r, color.g, color.b);
 
+// 		geometries.push(particleGeo);
+// 	}
 
+// 	// 🚀 개별 입자들을 하나의 지오메트리로 병합
+// 	const mergedGeometry = BufferGeometryUtils.mergeBufferGeometries(geometries);
+// 	mergedGeometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
 
+// 	const material = new THREE.PointsMaterial({
+// 		vertexColors: true, // 색상 적용
+// 		size: 5,
+// 		transparent: true,
+// 		opacity: 1,
+// 		depthWrite: false,
+// 		blending: THREE.AdditiveBlending, // 밝은 색상 겹치는 효과
+// 	});
+
+// 	const particleSystem = new THREE.Points(mergedGeometry, material);
+// 	scene.add(particleSystem);
+
+// 	// 🌟 애니메이션 적용 (위로 퍼지면서 사라지는 효과)
+// 	let frame = 0;
+// 	function animateParticles() {
+// 		if (frame > 80) {
+// 			scene.remove(particleSystem); // 애니메이션 종료 후 제거
+// 			return;
+// 		}
+
+// 		const positions = mergedGeometry.attributes.position.array;
+// 		for (let i = 0; i < particleCount; i++) {
+// 			const index = i * 3;
+// 			positions[index] += (Math.random() - 0.5) * 0.6; // X축 이동
+// 			positions[index + 1] += Math.random() * 2.5 + 0.5; // Y축 이동 (강하게 위로)
+// 			positions[index + 2] += (Math.random() - 0.5) * 0.6; // Z축 이동
+// 		}
+
+// 		// 점점 사라지는 효과 추가
+// 		material.opacity *= 0.97;
+
+// 		mergedGeometry.attributes.position.needsUpdate = true;
+// 		frame++;
+// 		requestAnimationFrame(animateParticles);
+// 	}
+
+// 	animateParticles();
+// }
 
 
 
@@ -2059,6 +2296,7 @@ function draw() {
 		nomoneygamza.mixer.update(delta);
 		isRenderNeeded = true;
 	}
+
 	if (bankbook?.mixer && bankbook.loaded) {
 		bankbook.mixer.update(delta);
 		isRenderNeeded = true;
@@ -2080,6 +2318,7 @@ function draw() {
 		coffee.mixer.update(delta);
 		isRenderNeeded = true;
 	}
+
 	if (cafe?.mixer && cafe.loaded) {
 		cafe.mixer.update(delta);
 		isRenderNeeded = true;
@@ -2089,6 +2328,7 @@ function draw() {
 		bakery.mixer.update(delta);
 		isRenderNeeded = true;
 	}
+
 	if (bam?.mixer && bam.loaded) {
 		bam.mixer.update(delta);
 		isRenderNeeded = true;
@@ -2098,29 +2338,27 @@ function draw() {
 		bakerygamza.mixer.update(delta);
 		bakerygamza.modelMesh.updateMatrixWorld(true);
 		isRenderNeeded = true;
-	  }
+	}
 
+	if (bakeryprops?.mixer && bakeryprops.loaded) {
+	bakeryprops.mixer.update(delta);
+	bakeryprops.modelMesh.updateMatrixWorld(true);
+	isRenderNeeded = true;
+	}
 
-	  if (bakeryprops?.mixer && bakeryprops.loaded) {
-		bakeryprops.mixer.update(delta);
-		bakeryprops.modelMesh.updateMatrixWorld(true);
-		isRenderNeeded = true;
-	  }
+	if (mailgamza?.mixer && mailgamza.loaded) {  
+	mailgamza.mixer.update(delta);
+	mailgamza.modelMesh.updateMatrixWorld(true);
+	isRenderNeeded = true;
+	}
 
+	if (file?.mixer && file.loaded) {
+	
+	file.mixer.update(delta);
 
-	  if (mailgamza?.mixer && mailgamza.loaded) {  
-		mailgamza.mixer.update(delta);
-		mailgamza.modelMesh.updateMatrixWorld(true);
-		isRenderNeeded = true;
-	  }
-
-	  if (file?.mixer && file.loaded) {
-	  
-		file.mixer.update(delta);
-
-		file.modelMesh.updateMatrixWorld(true);
-		isRenderNeeded = true;
-	  }
+	file.modelMesh.updateMatrixWorld(true);
+	isRenderNeeded = true;
+	}
 
 	if (!started) {
 		setTimeout(() => {
@@ -2186,7 +2424,7 @@ function draw() {
 			) {
 				player.moving = false;
 			}
-			console.log(destinationPoint.x , destinationPoint.z)
+			// console.log(destinationPoint.x , destinationPoint.z)
 
 			// 강의실 인터랙션
 			handleClassroomInteraction()
@@ -2288,6 +2526,8 @@ function checkIntersects() {
 
 			pointerMesh.position.x = destinationPoint.x;
 			pointerMesh.position.z = destinationPoint.z;
+
+			console.log(destinationPoint.x, destinationPoint.z)
 		}
 		break;
 	}
@@ -2338,39 +2578,8 @@ function checkGamzaIntersects() {
     }
 }
 
-// function checkBakeryGamzaIntersects() {
-// 	// ✅ Object3D 내부에서 Mesh를 찾아 classroomgamzaMeshes 변환
-// 	bakerygamzaMeshes = bakerygamzaMeshes.flatMap(object3D => {
-// 		let meshes = [];
-// 		object3D.traverse(child => {
-// 			if (child.isMesh) {
-// 				meshes.push(child);
-// 			}
-// 		});
-// 			return meshes;
-// 		});
-	
-// 		const intersects2 = gamzaRaycaster.intersectObjects(bakerygamzaMeshes);
-	
-	
-// 		if (intersects2.length > 0) {
-	
-// 			hideAllArrows()
-	
-// 			classroomgamza.actions[0].stop()
-// 			classroomgamza.actions[1].play()
-// 			classroomgamza.actions[4].play()
-	
-// 			setTimeout(()=>{
-				
-// 				presentationFinished = true
-	
-// 				// ✅ 강의실 인터랙션 종료 후 플레이어 다시 등장
-// 				restorePlayerAfterClass();
-// 			}, 3000)
-	
-// 		}
-// }
+
+
 
 let ovenEnabled = false
 let isOvenInteractionEnabled = false; // 플래그 변수
@@ -2381,12 +2590,15 @@ function enableOvenInteractions() {
 
     ovenEnabled = true;
     isOvenInteractionEnabled = true; // 실행됨을 표시
-	setTimeout(()=>{
+	setTimeout(() => {
 		showArrowAt(2); 
 	}, 5000)
 
     canvas.addEventListener('click', startOvenOpen, { once: true });
 }
+
+
+
 
 function startOvenOpen() {
     if (!ovenEnabled) return;
@@ -2435,45 +2647,146 @@ function doneOvenOpen() {
 }
 
 let boardHover = false;
-let bakeryHover = false;
+let isBoardClicked = false;
 
-// ✅ 마우스 이벤트 추가
-// 🪧 알바몽 보드
-	window.addEventListener('mousemove', (event) => {
 
-		mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-		mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-	
-		// 레이캐스터 업데이트
-		raycaster.setFromCamera(mouse, camera);
-	
-		// 박스와의 교차 확인
-		const intersects = raycaster.intersectObject(boardBox);
-	if(startFindAlba){
-		if (intersects.length > 0) {
-			// ✅ Hover 시 박스 색상 변경
-			boardHover = true
-			albagamza.actions[2].stop()
-			albagamza.actions[1].play()
-			bakeryBoxTalk.visible = true
 
-			scene.add(bakeryBox)
-			// boardBox.material.color.set(0xff0000);
-			console.log("🔴 박스에 Hover!");
+// document.querySelectorAll(".post").forEach(post => {
+//     post.addEventListener("click", (event) => {
+// 		event.stopPropagation(); // ✅ 다른 요소로 이벤트 전파 방지
+
+//         const memoName = event.target.dataset.memo;
+//         console.log(`📌 ${memoName} 게시물 클릭됨!`);
+
+//         const memoImages = {
+//             "DokseoMemo": "images/dokseo.png",
+//             "BakeryMemo": "images/bakery.png",
+//             "KidsMemo": "images/kids.png",
+//             "SushiMemo": "images/sushi.png",
+// 			"GamzaMemo": "images/gamza.png",
+//             "DoNotNakseoMemo": "images/donotnakseo.png",
+//             "WonesoongMemo": "images/wonesoong.png",
+//             "IwannagoHomeMemo": "images/iwannagohome.png",
+//         };
+
+//         if (memoImages[memoName]) {
+//             showImageOverlay(memoImages[memoName]);
+//         }
+//     });
+// });
+
+
+
+// ✅ 게시판 클릭 시 메모 Hover 감지 활성화
+window.addEventListener("click", (event) => {
+	if (!albaboard.modelMesh) return; // ✅ 게시판 모델이 로드되지 않으면 실행하지 않음
+
+	mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+	mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+	// 레이캐스터 업데이트
+	raycaster.setFromCamera(mouse, camera);
+
+	// ✅ 게시판 클릭 감지
+	const intersectsBoard = raycaster.intersectObject(albaboard.modelMesh, true);
+
+	if (startFindAlba) {
+		if (intersectsBoard.length > 0) {
+			// ✅ Hover 시 애니메이션 실행
+			boardHover = true;
+			albagamza.actions[2].stop();
+			albagamza.actions[1].play();
+			bakeryBoxTalk.visible = true;
+			// scene.add(bakeryPlane);
+			console.log("🔴 알바몽 게시판 Hover!");
+			isBoardClicked = true; // ✅ 게시판 클릭됨 → 메모 Hover 감지 활성화
 		} else {
-			// ✅ Hover가 아닐 때 원래 색상으로 복원
-			boardHover = false
-			albagamza.actions[1].stop()
-			albagamza.actions[2].play()
-			bakeryBoxTalk.visible = false
-			scene.remove(bakeryBox)
-			renderer.render(scene, camera)
-			boardBox.material.color.set(0x00ff00);
+			// ✅ Hover 해제 시 원래 상태로 복귀
+			boardHover = false;
+			albagamza.actions[1].stop();
+			albagamza.actions[2].play();
+			bakeryBoxTalk.visible = false;
+			// scene.remove(bakeryBox);
 		}
 	}
+});
+	
+	// window.addEventListener("mousemove", (event) => {
+	// 	if (!boardHover || memoModels.length === 0) return; // ✅ memoModels가 비어있다면 실행하지 않음
+	
+	// 	mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+	// 	mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+	
+	// 	raycaster.setFromCamera(mouse, camera);
+	
+	// 	const intersects = raycaster.intersectObjects(memoModels, true); // ✅ true 추가해서 하위 객체까지 감지
+	// 	setTimeout(() => console.log("📌 memoModels 배열:", memoModels), 3000);
+
+	// 	if (intersects.length > 0) {
+	// 		const hoveredMemo = intersects[0].object;
+	// 		const memoName = hoveredMemo.userData.memoName;
+	
+	// 		console.log(`👀 ${memoName} Hover 감지!`);
+	
+	// 		const memoImages = {
+	// 			"DokseoMemo": "images/dokseo.png",
+	// 			"DoNotNakseoMemo": "images/donotnakseo.png",
+	// 			"BakeryMemo": "images/bakery.png",
+	// 			"KidsMemo": "images/kids.png",
+	// 			"SushiMemo": "images/sushi.png",
+	// 			"WonesoongMemo": "images/wonesoong.png",
+	// 			"IwannagoHomeMemo": "images/iwannagohome.png",
+	// 			"GamzaMemo": "images/gamza.png"
+	// 		};
+	
+	// 		if (memoImages[memoName]) {
+	// 			showImageOverlay(memoImages[memoName]); // ✅ Hover 시 이미지 오버레이 표시
+	// 		}
+	// 	} else {
+	// 		hideImageOverlay(); // ✅ Hover 해제 시 오버레이 숨김
+	// 	}
+	// });
+	
+	
+
+
+	
+	// ✅ 이미지 오버레이 표시 함수 (배경 포함)
+	function showImageOverlay(imageSrc) {
+		let imageOverlay = document.getElementById("imageOverlay");
+		if (!imageOverlay) return;
+	
+		if (imageOverlay.src !== imageSrc) {
+			imageOverlay.src = imageSrc; // 동일 이미지면 불필요한 재설정 방지
+		}
+		imageOverlay.style.display = "block";
+	}
+	
+	
+	// ✅ 오버레이 숨기기 함수 (배경 포함)
+	function hideImageOverlay() {
+		const imageOverlay = document.getElementById("imageOverlay");
+		const imageOverlayBackground = document.getElementById("imageOverlayBackground");
+	
+		if (imageOverlay) {
+			imageOverlay.style.display = "none";
+		}
+		if (imageOverlayBackground) {
+			imageOverlayBackground.style.display = "none";
+		}
+	}
+	
+	// ✅ 배경 클릭 시 오버레이 닫기 & 메모 감지 비활성화
+	document.body.addEventListener("click", (event) => {
+		const imageOverlayBackground = document.getElementById("imageOverlayBackground");
+	
+		if (event.target === imageOverlayBackground) {
+			hideImageOverlay();
+			isBoardClicked = false; // ✅ 다시 게시판을 클릭해야 활성화됨
+			console.log("📌 메모 감지 비활성화.");
+		}
 	});
-
-
+	
 
 
 // 모델이 모두 로드된 후에만 클릭 이벤트 추가
