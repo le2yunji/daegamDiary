@@ -2598,8 +2598,6 @@ function enableOvenInteractions() {
 }
 
 
-
-
 function startOvenOpen() {
     if (!ovenEnabled) return;
 		hideAllArrows()
@@ -2650,33 +2648,6 @@ let boardHover = false;
 let isBoardClicked = false;
 
 
-
-// document.querySelectorAll(".post").forEach(post => {
-//     post.addEventListener("click", (event) => {
-// 		event.stopPropagation(); // ✅ 다른 요소로 이벤트 전파 방지
-
-//         const memoName = event.target.dataset.memo;
-//         console.log(`📌 ${memoName} 게시물 클릭됨!`);
-
-//         const memoImages = {
-//             "DokseoMemo": "images/dokseo.png",
-//             "BakeryMemo": "images/bakery.png",
-//             "KidsMemo": "images/kids.png",
-//             "SushiMemo": "images/sushi.png",
-// 			"GamzaMemo": "images/gamza.png",
-//             "DoNotNakseoMemo": "images/donotnakseo.png",
-//             "WonesoongMemo": "images/wonesoong.png",
-//             "IwannagoHomeMemo": "images/iwannagohome.png",
-//         };
-
-//         if (memoImages[memoName]) {
-//             showImageOverlay(memoImages[memoName]);
-//         }
-//     });
-// });
-
-
-
 // ✅ 게시판 클릭 시 메모 Hover 감지 활성화
 window.addEventListener("click", (event) => {
 	if (!albaboard.modelMesh) return; // ✅ 게시판 모델이 로드되지 않으면 실행하지 않음
@@ -2711,70 +2682,60 @@ window.addEventListener("click", (event) => {
 	}
 });
 	
-	// window.addEventListener("mousemove", (event) => {
-	// 	if (!boardHover || memoModels.length === 0) return; // ✅ memoModels가 비어있다면 실행하지 않음
-	
-	// 	mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-	// 	mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-	
-	// 	raycaster.setFromCamera(mouse, camera);
-	
-	// 	const intersects = raycaster.intersectObjects(memoModels, true); // ✅ true 추가해서 하위 객체까지 감지
-	// 	setTimeout(() => console.log("📌 memoModels 배열:", memoModels), 3000);
 
-	// 	if (intersects.length > 0) {
-	// 		const hoveredMemo = intersects[0].object;
-	// 		const memoName = hoveredMemo.userData.memoName;
-	
-	// 		console.log(`👀 ${memoName} Hover 감지!`);
-	
-	// 		const memoImages = {
-	// 			"DokseoMemo": "images/dokseo.png",
-	// 			"DoNotNakseoMemo": "images/donotnakseo.png",
-	// 			"BakeryMemo": "images/bakery.png",
-	// 			"KidsMemo": "images/kids.png",
-	// 			"SushiMemo": "images/sushi.png",
-	// 			"WonesoongMemo": "images/wonesoong.png",
-	// 			"IwannagoHomeMemo": "images/iwannagohome.png",
-	// 			"GamzaMemo": "images/gamza.png"
-	// 		};
-	
-	// 		if (memoImages[memoName]) {
-	// 			showImageOverlay(memoImages[memoName]); // ✅ Hover 시 이미지 오버레이 표시
-	// 		}
-	// 	} else {
-	// 		hideImageOverlay(); // ✅ Hover 해제 시 오버레이 숨김
-	// 	}
-	// });
-	
-	
+// ✅ 이미지 오버레이 표시 함수
+function showImageOverlay(imageSrc) {
+    let imageOverlay = document.getElementById("imageOverlay");
+    let imageOverlayBackground = document.getElementById("imageOverlayBackground");
 
+    if (!imageOverlayBackground) {
+        imageOverlayBackground = document.createElement("div");
+        imageOverlayBackground.id = "imageOverlayBackground";
+        imageOverlayBackground.style.position = "fixed";
+        imageOverlayBackground.style.top = "0";
+        imageOverlayBackground.style.left = "0";
+        imageOverlayBackground.style.width = "100vw";
+        imageOverlayBackground.style.height = "100vh";
+        imageOverlayBackground.style.backgroundColor = "rgba(0, 0, 0, 0.7)";
+        imageOverlayBackground.style.zIndex = "999";
+        imageOverlayBackground.style.display = "none";
+        document.body.appendChild(imageOverlayBackground);
+    }
 
-	
-	// ✅ 이미지 오버레이 표시 함수 (배경 포함)
-	function showImageOverlay(imageSrc) {
-		let imageOverlay = document.getElementById("imageOverlay");
-		if (!imageOverlay) return;
-	
-		if (imageOverlay.src !== imageSrc) {
-			imageOverlay.src = imageSrc; // 동일 이미지면 불필요한 재설정 방지
-		}
-		imageOverlay.style.display = "block";
-	}
-	
-	
-	// ✅ 오버레이 숨기기 함수 (배경 포함)
-	function hideImageOverlay() {
-		const imageOverlay = document.getElementById("imageOverlay");
-		const imageOverlayBackground = document.getElementById("imageOverlayBackground");
-	
-		if (imageOverlay) {
-			imageOverlay.style.display = "none";
-		}
-		if (imageOverlayBackground) {
-			imageOverlayBackground.style.display = "none";
-		}
-	}
+    if (!imageOverlay) {
+        imageOverlay = document.createElement("img");
+        imageOverlay.id = "imageOverlay";
+        imageOverlay.style.position = "fixed";
+        imageOverlay.style.top = "50%";
+        imageOverlay.style.left = "50%";
+        imageOverlay.style.transform = "translate(-50%, -50%)";
+        imageOverlay.style.maxWidth = "50vw";
+        imageOverlay.style.maxHeight = "50vh";
+        imageOverlay.style.objectFit = "contain";
+        imageOverlay.style.zIndex = "1000";
+        imageOverlay.style.pointerEvents = "none";
+        document.body.appendChild(imageOverlay);
+    }
+
+    console.log("🖼️ 이미지 오버레이 요소 확인:", imageOverlay);
+
+    imageOverlay.src = imageSrc;
+    imageOverlay.style.display = "block";
+    imageOverlayBackground.style.display = "block";
+}
+
+// ✅ 오버레이 숨기기 함수
+function hideImageOverlay() {
+    const imageOverlay = document.getElementById("imageOverlay");
+    const imageOverlayBackground = document.getElementById("imageOverlayBackground");
+
+    if (imageOverlay) {
+        imageOverlay.style.display = "none";
+    }
+    if (imageOverlayBackground) {
+        imageOverlayBackground.style.display = "none";
+    }
+}
 	
 	// ✅ 배경 클릭 시 오버레이 닫기 & 메모 감지 비활성화
 	document.body.addEventListener("click", (event) => {
