@@ -20,7 +20,7 @@ export class Onion {
 		this.loaded = false;
 		this.mixer = null;
 		this.actions = [];
-		this.visible = false
+		// this.visible = false
 
 		this.loader = new GLTFLoader();
 
@@ -72,14 +72,13 @@ export class Onion {
 			JSON.stringify(model),
 			'',
 			(gltf) => {
-				// console.log("✅ GLTF 파싱 성공:", gltf);
 				this.modelMesh = gltf.scene;
 				this.modelMesh.position.set(this.x, this.y, this.z);
 				this.modelMesh.rotation.set(this.rotationX, this.rotationY, this.rotationZ);
 				this.modelMesh.scale.set(this.scaleX, this.scaleY, this.scaleZ);
 				this.modelMesh.name = "onion";
 				this.modelMesh.castShadow = true;
-				this.modelMesh.visible = false
+				// this.modelMesh.visible = false
 
 				this.scene.add(this.modelMesh);
 				this.loaded = true;
@@ -107,7 +106,7 @@ export class Onion {
 						this.actions[index] = this.mixer.clipAction(clip);
 					});
 					this.actions[0].play();
-					console.log(this.actions)
+					// console.log(this.actions)
 				} else {
 					console.warn('No animations found in the GLTF file.');
 				}
@@ -117,8 +116,6 @@ export class Onion {
 					this.info.onLoad(this.modelMesh);
 				}
 	
-				console.log("🧅 Onion 모델이 로드되었습니다.");
-
 				setTimeout(() => {
                     console.log("🧹 Blob URL 정리:", model.buffers[0].uri);
                     URL.revokeObjectURL(model.buffers[0].uri);

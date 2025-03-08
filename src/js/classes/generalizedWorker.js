@@ -3,10 +3,6 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
 const loader = new GLTFLoader();
 
-
-
-console.log("👷‍♂️ Generalized Web Worker 실행됨!");
-
 self.onmessage = async function (event) {
     const { modelSrc } = event.data;
 
@@ -28,8 +24,6 @@ self.onmessage = async function (event) {
                 self.postMessage({ error });
                 return;
             }
-
-            console.log("🖼️ 텍스처 이미지 정보:", jsonData.images);
             
             try {
                 if (jsonData.images && jsonData.images.length > 0) {
@@ -38,28 +32,26 @@ self.onmessage = async function (event) {
                     for (let i = 0; i < jsonData.images.length; i++) {
                         if (!loadedImages.has(i)) {
                             try {
-                                console.log(`🖼️ 이미지 ${i + 1} 로드 시도`);
+                                // console.log(`🖼️ 이미지 ${i + 1} 로드 시도`);
                                 const imageBuffer = await gltf.parser.getDependency('image', i);
-                                console.log(`✅ 이미지 ${i + 1} 로드 성공`);
+                                // console.log(`✅ 이미지 ${i + 1} 로드 성공`);
                     
                                 const mimeType = jsonData.images[i].mimeType || 'image/png';
                                 const blob = new Blob([imageBuffer], { type: mimeType });
                                 images.push(blob);
                                 loadedImages.add(i);
                             } catch (error) {
-                                console.error(`❌ 이미지 ${i + 1} 로드 실패`, error);
+                                // console.error(`❌ 이미지 ${i + 1} 로드 실패`, error);
                             }
                         }
                     }
                     
                 } else {
-                    console.warn("⚠️ 텍스처 이미지가 없습니다.");
+                    // console.warn("⚠️ 텍스처 이미지가 없습니다.");
                 }
             } catch (error) {
-                console.error("❌ Web Worker: 이미지 로드 실패", error);
+                // console.error("❌ Web Worker: 이미지 로드 실패", error);
             }
-
-            console.log("✅ Web Worker: 모델 데이터 전송 완료", { buffersLength: buffers.length, imagesLength: images.length });
             
             // 모델, 버퍼, 이미지 데이터 전송
             if (buffers.length > 0) {

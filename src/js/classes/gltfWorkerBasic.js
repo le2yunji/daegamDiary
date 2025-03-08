@@ -3,8 +3,6 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
 const loader = new GLTFLoader();
 
-console.log("👷‍♂️ Web Worker 실행됨!");
-
 self.onmessage = async function (event) {
     const { modelSrc } = event.data;
 
@@ -21,7 +19,7 @@ self.onmessage = async function (event) {
                     buffers.push(buffer);
                 }
             } catch (error) {
-                console.error("❌ [Web Worker] 버퍼 데이터 로드 실패:", error);
+                // console.error("❌ [Web Worker] 버퍼 데이터 로드 실패:", error);
                 self.postMessage({ error });
                 return;
             }
@@ -36,18 +34,15 @@ self.onmessage = async function (event) {
                         images.push(blob);
                     }
                 } catch (error) {
-                    console.error("❌ [Web Worker] 이미지 데이터 로드 실패:", error);
+                    // console.error("❌ [Web Worker] 이미지 데이터 로드 실패:", error);
                 }
             } else {
-                console.warn("⚠️ [Web Worker] 이미지가 없는 모델입니다.");
+                // console.warn("⚠️ [Web Worker] 이미지가 없는 모델입니다.");
             }
-
-            console.log("✅ Web Worker: 모델 데이터 전송 완료");
             self.postMessage({ model: jsonData, buffers, images }, buffers);
         },
         undefined,
         (error) => {
-            console.error(`❌ [Web Worker] 모델 로드 실패 - ${modelSrc}`, error);
             self.postMessage({ error });
         }
     );
