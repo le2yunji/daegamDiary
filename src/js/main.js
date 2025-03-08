@@ -26,11 +26,11 @@ import { Metro } from './classes/Metro'
 
 // Texture
 const textureLoader = new THREE.TextureLoader();
-const floorTexture = textureLoader.load('images/grid.png');
+const floorTexture = textureLoader.load('images/load.png');
 floorTexture.wrapS = THREE.RepeatWrapping;
 floorTexture.wrapT = THREE.RepeatWrapping;
-floorTexture.repeat.x = 25;
-floorTexture.repeat.y = 25;
+floorTexture.repeat.x = 1;
+floorTexture.repeat.y = 1;
 
 // Renderer
 const canvas = document.querySelector('#three-canvas');
@@ -102,6 +102,9 @@ camera3.position.z = -62.5
 camera3.zoom = 0.1
 camera3.updateProjectionMatrix();
 camera3.lookAt(-52, 1, -82)
+
+
+
 
 scene.add(camera, camera2, camera3);
 
@@ -217,25 +220,6 @@ dolgamza.rotation.x = THREE.MathUtils.degToRad(0)
 // dolgamza.rotation.z = THREE.MathUtils.radToDeg(90)
 // scene.add(dolgamza);
 
-// 바닥 이미지 - 양파 감자 고구마
-const oniongamzagogumaTexture = new THREE.TextureLoader().load('images/onion_gamza_goguma.png')
-const oniongamzagogumaPlaneGeometry = new THREE.PlaneGeometry(1, 1);
-const oniongamzagogumaMaterial = new THREE.MeshBasicMaterial({
-	map: oniongamzagogumaTexture,
-	transparent: true, // PNG의 투명도 반영
-	alphaTest: 0.5 // 알파 값 기준
-});
-oniongamzagogumaTexture.colorSpace = THREE.SRGBColorSpace; // sRGB 색 공간 설정
-oniongamzagogumaTexture.needsUpdate = true;
-const oniongamzagoguma = new THREE.Mesh(oniongamzagogumaPlaneGeometry, oniongamzagogumaMaterial);
-oniongamzagoguma.castShadow = true; 
-oniongamzagoguma.position.x = 69
-oniongamzagoguma.position.z = 37
-oniongamzagoguma.position.y = 0.5
-oniongamzagoguma.scale.set(8, 11, 11)
-oniongamzagoguma.rotation.x = THREE.MathUtils.degToRad(-90)
-// dolgamza.rotation.z = THREE.MathUtils.radToDeg(90)
-scene.add(oniongamzagoguma);
 
 
 const pointerMesh = new THREE.Mesh(
@@ -422,7 +406,10 @@ function moveModelYPosition(model, newY, duration = 0.5) {
         gsap.to(model.modelMesh.position, {
             y: newY,
             duration,
-            ease: "Bounce.inOut"
+            ease: "Bounce.inOut",
+			onUpdate: () => {
+				renderer.render(scene, camera); // ✅ 애니메이션 중 렌더링 강제 업데이트
+			}
         });
     } else {
         console.warn(`⚠️ 모델 이동 실패: 아직 로드되지 않음.`, model);
@@ -1408,6 +1395,16 @@ function handleNomoneyInteraction() {
 		// 카메라 각도 변환
 		downCameraY()
 
+		gsap.to(camera, {
+			duration: 0.5,   // ✅ 3초 동안 애니메이션
+			zoom: 0.15,    // ✅ 목표 zoom 값
+			ease: "power2.out", // ✅ 부드러운 감속 애니메이션
+			onUpdate: () => {
+				camera.updateProjectionMatrix(); // ✅ 변경 사항 반영
+			}
+		});
+		
+
 		bankLoaded = true
 
 		if (bankLoaded) { 
@@ -1478,6 +1475,14 @@ function restorePlayerAfterNomoney() {
 
 		setTimeout(()=>{
 			   // 카메라 각도 변환
+			   gsap.to(camera, {
+				duration: 0.3,   // ✅ 3초 동안 애니메이션
+				zoom: 0.075,    // ✅ 목표 zoom 값
+				ease: "power2.out", // ✅ 부드러운 감속 애니메이션
+				onUpdate: () => {
+					camera.updateProjectionMatrix(); // ✅ 변경 사항 반영
+				}
+			});
 				returnCameraY()
 		}, 2000)
 
